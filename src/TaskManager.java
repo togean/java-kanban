@@ -1,211 +1,271 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 public class TaskManager {
-    private HashMap<Integer, Tasks> myTasks;
-    private HashMap<Integer, SubTasks> mySubTasks;
+    private HashMap<Integer, Task> myTasks;
+    private HashMap<Integer, SubTask> mySubTasks;
+    private HashMap<Integer, Epic> myEpics;
 
     public TaskManager() {
         myTasks = new HashMap<>();
         mySubTasks = new HashMap<>();
+        myEpics = new HashMap<>();
     }
 
     public void getAllTasks() {
-        System.out.println("Перечень всех задач:");
-        for (Tasks tasksToShow : myTasks.values()) {
+        System.out.println("Перечень всех задач ("+myTasks.size()+"):");
+        for (Task tasksToShow : myTasks.values()) {
             System.out.println(tasksToShow.toString());
         }
-        System.out.println("Перечень всех подзадач:");
-        for (Tasks tasksToShow : mySubTasks.values()) {
-            System.out.println(tasksToShow.toString());
-        }
-
     }
 
-    public Integer getParentIDForSubTask(String parentDescription) {
-        Integer parentID = -1;
-        for (Integer i : myTasks.keySet()) {
-            Tasks task = myTasks.get(i);
-            if (task.getTaskDescription().equals(parentDescription)) {
-                parentID = i;
-            }
+    public void getAllSubTasks() {
+        System.out.println("Перечень всех подзадач ("+mySubTasks.size()+"):");
+        for (Task tasksToShow : mySubTasks.values()) {
+            System.out.println(tasksToShow.toString());
         }
-        return parentID;
+    }
+    public void getAllEpics() {
+        System.out.println("Перечень всех эпиков ("+myEpics.size()+"):");
+        for (Epic epicToShow : myEpics.values()) {
+            System.out.println(epicToShow.toString());
+        }
     }
 
     public void deleteAllTasks() {
         myTasks.clear();
         mySubTasks.clear();
+        myEpics.clear();
     }
 
     public void deleteSubTask(Integer subtaskIDToDelete) {
-        Integer parentID = -1;//Переменная для хранения ссылки на родителя
-        boolean needChangeTaskType = true;
-        for (Integer i : mySubTasks.keySet()) {
-            SubTasks subtaskToGetParentID = mySubTasks.get(i);
-            if (i == subtaskIDToDelete) {
-                parentID = subtaskToGetParentID.getParentTaskID();
-                mySubTasks.remove(subtaskIDToDelete);
-                break;
+        mySubTasks.remove(subtaskIDToDelete);
+        recalculateOrUpdateTaskStatus();//Обновляем статусы эпиков
+
+    }
+
+    public void createTask(String taskDescription, String taskDetails) {
+        //Сначала проверяем, нет ли уже задача с таким description в списке задач. Если нет, то создать можно. А если нет - то проверяем в эпиках - там тоже совпадения быть недолжно
+        boolean hasDublicate = false;
+        for(Integer i: myTasks.keySet()){
+            Task compare = myTasks.get(i);
+            if(compare.getTaskDescription().equals(taskDescription)){
+                hasDublicate = true;
             }
         }
-        //Далее нужно проверить, что у родителя больше нет подзадач и если это так, то родительская задача из эпика должна превратиться просто в задачу
-        if (parentID >= 0) {//Проверяем, остались ли ещё подзадачи со связью с данным родителем
-            for (Integer i : mySubTasks.keySet()) {
-                SubTasks subtaskToGetParentID = mySubTasks.get(i);
-                if (subtaskToGetParentID.getParentTaskID() == parentID) {
-                    //подзадачи ссылающиеся на данного родителя есть, так что изменять тип задачи с эпика на просто задачу не будем
-                    needChangeTaskType = false;
-                    break; //Выходим из цикла так как нам надо было обнаружить хотя бы одну связь с родительской задачей
+        if(!hasDublicate) {
+            Task newTask = new Task(taskDescription, taskDetails, TaskStatus.NEW);
+            Integer newTaskID = -1;
+            myTasks.put(myTasks.size(), newTask);
+            for (Integer i : myTasks.keySet()) {
+                Task taskToSetID = myTasks.get(i);
+                if (taskToSetID.getTaskDescription().equals(taskDescription)) {
+                    newTaskID = i;
+                    break;
                 }
             }
-            if (needChangeTaskType) {//Если же связей больше нет, то меняем тип родительской задачи
-                Tasks updatedParentTask = myTasks.get(parentID);
-                updatedParentTask.setTaskEpic(false);
-                myTasks.put(parentID, updatedParentTask);
+            if (newTaskID >= 0) {
+                newTask.setTaskIndex(newTaskID);
+                updateTask(newTask);//Так как в конструкторе мы не знаем, какой по счёту у нас создаётся элемент, то обновляем запись, в которой прописываем ID-шник задачи
             }
         }
     }
-
-    public void createTask(String taskDescription, String taskDetails, TasksTypes taskType, String parentTaskDescription) {
-        if (!taskType.equals(TasksTypes.SUBTASK)) {//Если задача не явлется подзадачей, то будет создана задача
-            boolean canCreateTask = true;//Предполагаем, что задачу можем создать
-            for (Tasks task : myTasks.values()) {//Проверяем, что такой же задачи ещё небыло
-                if (task.getTaskDescription().equals(taskDescription)) {
-                    canCreateTask = false;//Такая задача уже была - не можем такую же создавать
+    public void createEpic(String epicDescription, String epicDetails) {
+        boolean hasDublicate = false;
+        for(Integer i: myEpics.keySet()){
+            Task compare = myEpics.get(i);
+            if(compare.getTaskDescription().equals(epicDescription)){
+                hasDublicate = true;
+            }
+        }
+        if(!hasDublicate) {
+            Epic newEpic = new Epic(epicDescription, epicDetails, TaskStatus.NEW);
+            Integer newTaskID = -1;
+            myEpics.put(myEpics.size(), newEpic);
+            for (Integer i : myEpics.keySet()) {
+                Task taskToSetID = myEpics.get(i);
+                if (taskToSetID.getTaskDescription().equals(epicDescription)) {
+                    newTaskID = i;
                     break;
                 }
             }
-            if (canCreateTask) {//Если такой задачи ещё небыло, то можем создать новую задачу с заданным описанием
-                Tasks newTask = new Tasks(taskDescription, taskDetails, TaskStatuses.NEW, taskType);
-                myTasks.put(myTasks.size(), newTask);
+            if (newTaskID >= 0) {
+                newEpic.setTaskIndex(newTaskID);
+                updateEpic(newEpic);//Так как в конструкторе мы не знаем, какой по счёту у нас создаётся элемент, то обновляем запись, в которой прописываем ID-шник эпика
             }
-        } else {//В нашем трекере пользователь пытается создать подзадачу, а значит, нам надо найти родительскую по описанию данной поздадачи
+        }
+    }
+    public void createSubTask(String taskDescription, String taskDetails, String parentTaskDescription) {
+            //В нашем трекере пользователь пытается создать подзадачу, а значит, нам надо найти родительскую по описанию данной поздадачи
             Integer parentTaskID = -1;
-            for (Integer i : myTasks.keySet()) { //В цикле ищем совпадения по описанию родительской задачи
-                Tasks taskToCompare = myTasks.get(i);
+            for (Integer i : myTasks.keySet()) { //В цикле ищем совпадения по описанию родительской задачи сначала в задачах, по после поищем в эпиках, если в задачах она не найдётся
+                Task taskToCompare = myTasks.get(i);
                 if (taskToCompare.getTaskDescription().equals(parentTaskDescription)) {
-                    parentTaskID = i;//Родительская задача найдена
+                    //Родительская задача найдена в задачах
+                    //Надо перенести родительскую задачу в эпики c обновлением индекса, так как при создании эпика индекс изменится
+                    Epic newEpic = new Epic(taskToCompare.getTaskDescription(), taskToCompare.getTaskDetails(), TaskStatus.NEW);//Создаём из задачи новый эпик
+                    myEpics.put(myEpics.size(), newEpic);//Сохраняем новый эпик
+                    myTasks.remove(i);//Удаляем уже не нужную задачу
+                    Integer newEpicID=-1;
+                    for(Integer j : myEpics.keySet()){//После создания эпика надо узнать какой ему присвоился ID, что бы далее прописать его полю TaskIndex эпика и далее связать его с подзадачей
+                        Task taskToSetID = myEpics.get(j);
+                        if(taskToSetID.getTaskDescription().equals(taskToCompare.getTaskDescription())){
+                            newEpicID = j;//Выяснили какой ID был определён в HashMap для созданного эпика - его и будем далее использовать
+                            break;
+                        }
+                    }
+                    if(newEpicID>=0) {
+                        newEpic.setTaskIndex(newEpicID);
+                        parentTaskID = newEpicID;//Родительским ID для подзадачи будет ID ЭПИКА, а не задачи, т.к. задача теперь стала эпиком и получила новый ID
+                        updateEpic(newEpic);
+                    }
                     break;
+                }
+            }
+            if(parentTaskID<0){//Если в задачх родителя не нашли, пробуем его найти в эпиках
+                for (Integer i : myEpics.keySet()) { //В цикле ищем совпадения по описанию родительской задачи сначала в задачах, по после поищем в эпиках, если в задачах она не найдётся
+                    Epic epicToCompare = myEpics.get(i);
+                    if (epicToCompare.getTaskDescription().equals(parentTaskDescription)) {
+                        parentTaskID = i;//Родительская задача найдена в эпиках
+                        break;
+                    }
                 }
             }
             if (parentTaskID >= 0) {//Если родитель найден, то выполняем проверку на возможность создания подзадачи
                 boolean canCreateSubTask = true;
-                for (Integer i : mySubTasks.keySet()) {//В цикле проверяем есть ли такая подзадача в списке подзадач - так как подзадача могла быть у другого родителя. Предполагается, что у разных родителем могут быть одинаковые подзадачи
-                    SubTasks taskToCompare = mySubTasks.get(i);
+                for (Integer i : mySubTasks.keySet()) {//В цикле проверяем есть ли такая подзадача в списке подзадач - так как подзадача могла быть у другого родителя. Предполагается, что у разных родителей могут быть одинаковые подзадачи
+                    SubTask taskToCompare = mySubTasks.get(i);
                     if (taskToCompare.getTaskDescription().equals(taskDescription)) {
-                        canCreateSubTask = false;//Обнаружили такую подзадачу - надо проверить, у того же она родителя или у другого
+                        canCreateSubTask = false;//Обнаружили такую подзадачу - сразу не можем создать подзадачу, т.к. надо проверить, у того же она родителя или у другого
                         break;
                     }
                 }
-                if (canCreateSubTask) {//Если нашей подзадачи ранее небыло, то можем её создать
+                if (canCreateSubTask) {//Если нашей подзадачи ранее небыло, то можем её просто создать
                     Integer newID = mySubTasks.size();
-                    SubTasks newSubTask = new SubTasks(taskDescription, taskDetails, TaskStatuses.NEW, TasksTypes.SUBTASK, parentTaskID);
+                    SubTask newSubTask = new SubTask(taskDescription, taskDetails, TaskStatus.NEW, TasksType.SUBTASK, parentTaskID);
                     mySubTasks.put(newID, newSubTask);
-                    //Далее, наш родитель должен стать эпиком, так как у него появились подзадачи
-                    Tasks tempTaskToCompare = myTasks.get(parentTaskID);
-                    if (!tempTaskToCompare.isTaskEpic()) {//Проверяем, может родительская задача уже является эпиком
-                        tempTaskToCompare.setTaskEpic(true);//Если родитель небыл эпиком, то выставляем, что он теперь эпик
+                    Integer newSubtaskID=-1;
+                    for(Integer j : mySubTasks.keySet()){//После создания эпика надо узнать какой ему присвоился ID, что бы далее прописать его полю TaskIndex эпика и далее связать его с подзадачей
+                        SubTask subtaskToSetID = mySubTasks.get(j);
+                        if(subtaskToSetID.getTaskDescription().equals(taskDescription)){
+                            newSubtaskID = j;//Выяснили какой ID был определён в HashMap для созданного эпика - его и будем далее использовать
+                            break;
+                        }
                     }
+                    if(newSubtaskID>=0) {
+                        newSubTask.setTaskIndex(newSubtaskID);
+                        updateSubTask(newSubTask);//Так как в конструкторе мы не знаем, какой по счёту у нас создаётся элемент, то обновляем запись, в которой прописываем ID-шник подзадачи
+                    }
+                    recalculateOrUpdateTaskStatus();//Пересчитываем статусы эпиков
                 } else {//Если же подзадача уже была - надо проверить, совпадают ли ID родителя. Если совпадают - не можем создать подзадачу, так как у одного родителя не может быть две одинаковых подзадачи
                     for (Integer i : mySubTasks.keySet()) {//Смотрим в подзадачах, нашу подзадачу и проверяем её родительский ID
-                        SubTasks subtaskToCompare = mySubTasks.get(i);
-                        if (subtaskToCompare.getParentTaskID() != parentTaskID) {
-                            //Если у существующей подзадачи другой родитель, то новую такую же подзадачу у другого родителя можем создать
+                        SubTask subtaskToCompare = mySubTasks.get(i);
+                        if (subtaskToCompare.getParentTaskID() != parentTaskID) {//Если ID НЕ совпадают, то можем создать подзадачу
                             Integer newID = mySubTasks.size();
-                            SubTasks newSubTask = new SubTasks(taskDescription, taskDetails, TaskStatuses.NEW, TasksTypes.SUBTASK, parentTaskID);
+                            SubTask newSubTask = new SubTask(taskDescription, taskDetails, TaskStatus.NEW, TasksType.SUBTASK, parentTaskID);
                             mySubTasks.put(newID, newSubTask);
-                            //Далее, как и раньше наш родитель должен стать эпиком, так как у него появились подзадачи
-                            Tasks tempTaskToCompare = myTasks.get(parentTaskID);
-                            if (!tempTaskToCompare.isTaskEpic()) {//Проверяем, может родительская задача уже является эпиком
-                                tempTaskToCompare.setTaskEpic(true);//Если родитель небыл эпиком, то выставляем, что он теперь эпик
-                            }
                         }
                     }
                 }
             }
-        }
     }
 
-    public void updateTask(Tasks task) {
-        for (Integer i : myTasks.keySet()) {
-            Tasks taskToUpdate = myTasks.get(i);
-            if (taskToUpdate.getTaskDescription().equals(task.getTaskDescription())) {
-                if (task.isTaskEpic()) {//Если же задача эпик, то статус не меняем, он будет пересчитываться, по-этому оставляем старое значение
-                    task.setTaskStatus(taskToUpdate.getTaskStatus());
-                }
-                myTasks.put(i, task);
+    public void updateTask(Task task) {
+        Integer taskID=-1;
+        for(Integer i : myTasks.keySet()){//Что бы обновить задачу, надо её найти в мапе и узнать её ID
+            Task taskToSetID = myTasks.get(i);
+            if(taskToSetID.getTaskDescription().equals(task.getTaskDescription())){
+                taskID = i;//Нашли ID нашей задачи, подлежащей обновлению
+                break;
             }
+        }
+        if(taskID>=0) {
+            task.setTaskIndex(taskID);
+            myTasks.put(taskID, task);
         }
     }
-
-    public void updateSubTask(SubTasks subTask) {
-        for (Integer i : mySubTasks.keySet()) {
-            Tasks subtaskToUpdate = mySubTasks.get(i);
-            if (subtaskToUpdate.getTaskDescription().equals(subTask.getTaskDescription())) {
-                mySubTasks.put(i, subTask);
+    public void updateEpic(Epic epicToUpdate) {
+        Integer epicID=-1;
+        for(Integer i : myEpics.keySet()){//Что бы обновить эпик, надо его найти в мапе и узнать его ID
+            Epic epicToSetID = myEpics.get(i);
+            if(epicToSetID.getTaskDescription().equals(epicToUpdate.getTaskDescription())){
+                epicID = i;//Нашли ID нашего эпика, подлежащей обновлению
+                break;
             }
         }
+        if(epicID>=0) {
+            epicToUpdate.setTaskIndex(epicID);
+            myEpics.put(epicID, epicToUpdate);
+        }
+    }
+    public void updateSubTask(SubTask subTask) {
+        Integer subtaskID=-1;
+        Integer parentID=0;//Будем выявлять связь с родителем, так как в переданной subTask нет родительского ID
+        for(Integer i : mySubTasks.keySet()){//Что бы обновить подзадачу, надо её найти в мапе и узнать её ID
+            SubTask subtaskToSetID = mySubTasks.get(i);
+            if(subtaskToSetID.getTaskDescription().equals(subTask.getTaskDescription())){
+                subtaskID = i;//Нашли ID нашей подзадачи, подлежащей обновлению
+                parentID = subtaskToSetID.getParentTaskID();
+                break;
+            }
+        }
+        if(subtaskID>=0) {
+            subTask.setTaskIndex(subtaskID);//Выставили правильное значение индекса
+            subTask.setParentTaskID(parentID);//Выставили правильное значение индекса родителя
+            mySubTasks.put(subtaskID, subTask);
+            recalculateOrUpdateTaskStatus();//Пересчитываем статусы эпиков, так как мы изменили подзадачу
+        }
+
     }
 
     public void deleteTask(Integer taskIDToDelete) {
-        boolean canDeleteTask = false;//Флаг того, что могу удалить выбранную задачу (проверка что запись с нужным для удаления ID есть)
-        for (Integer i : myTasks.keySet()) {
-            if (i == taskIDToDelete) {
-                canDeleteTask = true;
+        myTasks.remove(taskIDToDelete);
+    }
+    public void deleteEpic(Integer epicIDToDelete) {
+        boolean canDeleteEpic = true;//Флаг того, что у эпика больше нет подзадач и он может быть удалён
+        for (Integer i : mySubTasks.keySet()) {//Проверяем, что подзадачи не ссылаются на этот эпик
+            SubTask subtaskLinkedToEpic = mySubTasks.get(i);
+            if (subtaskLinkedToEpic.getParentTaskID() == epicIDToDelete) {
+                canDeleteEpic = false;
                 break;
             }
         }
-        if (canDeleteTask) {
-            //Сначала проверяем, что на задача с данным ID не эпик - т.е. у неё нет подзадач и на неё никакая подзадача не ссылается
-            Tasks taskToDelete = myTasks.get(taskIDToDelete);
-            if (!taskToDelete.isTaskEpic()) {//Если задача НЕ эпик, то можем удалять
-                myTasks.remove(taskIDToDelete);
-            } else {//Если подзадача эпик, то сначала удалим все её подзадачи, а потом и сам эпик.
-                for (Integer i : mySubTasks.keySet()) {
-                    SubTasks subtasksToDelete = mySubTasks.get(i);
-                    if (subtasksToDelete.getParentTaskID() == taskIDToDelete) {
-                        mySubTasks.remove(i);
-                        break;
-                    }
-                }
-            }
+        if(canDeleteEpic){
+            myEpics.remove(epicIDToDelete);
         }
     }
-
-    public ArrayList<SubTasks> getSubTasksOfEpic(String epicDescription) {
-        ArrayList<SubTasks> listOfSubtasksForEPIC = new ArrayList<>();
-        Integer subtasksParentIDs = -1;
-        for (Integer i : myTasks.keySet()) {//Сначала нам надо найти ID эпика
-            Tasks taskToExtractAllSubtasks = myTasks.get(i);
-            if (taskToExtractAllSubtasks.getTaskDescription().equals(epicDescription)) {
-                subtasksParentIDs = i;//Нашли ID эпика
+    public ArrayList<SubTask> getSubTasksOfEpic(String epicDescription) {
+        ArrayList<SubTask> listOfSubtasksForEPIC = new ArrayList<>();
+        Integer epicParentIDs = -1;
+        for (Integer i : myEpics.keySet()) {//Сначала нам надо найти ID эпика по его описанию
+            Epic epicToExtractAllSubtasks = myEpics.get(i);
+            if (epicToExtractAllSubtasks.getTaskDescription().equals(epicDescription)) {
+                epicParentIDs = i;//Нашли ID эпика
+                System.out.println("Такой эпик нашёлся");
                 break;
             }
         }
-        if (subtasksParentIDs > 0) {//Если ID эпика нашли, то набираем ArrayList его подзадач
+        if (epicParentIDs >= 0) {//Если ID эпика нашли, то набираем ArrayList его подзадач
             for (Integer i : mySubTasks.keySet()) {//Сначала нам надо найти ID эпика
-                SubTasks subtaskToCheckTheirParentId = mySubTasks.get(i);
-                if (subtaskToCheckTheirParentId.getParentTaskID() == subtasksParentIDs) {
+                SubTask subtaskToCheckTheirParentId = mySubTasks.get(i);
+                if (subtaskToCheckTheirParentId.getParentTaskID() == epicParentIDs) {
                     listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);
+                    System.out.println("Добавил подзадачу в список");
                 }
             }
         }
         return listOfSubtasksForEPIC;
     }
 
-    public void recalculateOrUpdateTaskStatus() {
-        for (Integer i : myTasks.keySet()) {//Проходим по каждой задаче
-            Tasks currentRecalculatedTask = myTasks.get(i);
+    private void recalculateOrUpdateTaskStatus() {
+        for (Integer i : myEpics.keySet()) {//Проходим по каждой задаче
+            Epic currentRecalculatedEpic = myEpics.get(i);
             boolean isTaskDone = true;
             boolean isTaskNew = true;
             Integer numberOfSubtasks = 0;//Учёт сколько подзадач у задачи, что бы анализировать потом в цикле статусы
-            ArrayList<TaskStatuses> idsOfSubtasksForCurrentTask = new ArrayList<>();
-            if (currentRecalculatedTask.isTaskEpic) {//Пересчёт только для эпиков
-                //
-                //Вот тут у еня вопрос: Эпиком же по условию может быть ТОЛЬКО задача С НАЛИЧИЕМ подзадач. Почему в условиях для эпика говорится, что ЕСЛИ У ЭПИКА НЕТ подзадач, то его статус - NEW. Ведь по определению у ЭПИКА ОБЯЗАТЕЛЬНО должна быть подзадача.
-                //
+            ArrayList<TaskStatus> idsOfSubtasksForCurrentTask = new ArrayList<>();
+
                 for (Integer j : mySubTasks.keySet()) {//В цикле читаем статусы подзадач текущей родительской задачи для расчёта статуса родительской задачи
-                    SubTasks currentSubtaskToCalculateTask = mySubTasks.get(j);
+                    SubTask currentSubtaskToCalculateTask = mySubTasks.get(j);
                     if (currentSubtaskToCalculateTask.getParentTaskID() == i) {//Если у подзадачи родителем является текущая задача, то учитываем её статус в расчёте статуса родителя
                         idsOfSubtasksForCurrentTask.add(currentSubtaskToCalculateTask.getTaskStatus());//Добавляем в список значения статуса у очередной подзадачи
                         numberOfSubtasks++;//Считаем сколько подзадач, что бы потом организовать цикл подсчёта
@@ -214,30 +274,29 @@ public class TaskManager {
                 int numberOfNew = 0; //Кол-во подзадач статуса New
                 int numberOfDone = 0; //Кол-во подзадач статуса DONE
                 for (int k = 0; k < numberOfSubtasks; k++) {//Идём по циклу выявленных подзадач нашей родительской задачи и сравниваем статусы, одновременно их подсчитывая
-                    if (idsOfSubtasksForCurrentTask.get(k).equals(TaskStatuses.NEW)) {
+                    if (idsOfSubtasksForCurrentTask.get(k).equals(TaskStatus.NEW)) {
                         numberOfNew++;
                     }
-                    if (idsOfSubtasksForCurrentTask.get(k).equals(TaskStatuses.DONE)) {
+                    if (idsOfSubtasksForCurrentTask.get(k).equals(TaskStatus.DONE)) {
                         numberOfDone++;
                     }
                 }
                 if (numberOfNew == numberOfSubtasks) {
-                    currentRecalculatedTask.setTaskStatus(TaskStatuses.NEW);
-                    myTasks.put(i, currentRecalculatedTask);
+                    currentRecalculatedEpic.setTaskStatus(TaskStatus.NEW);
+                    myEpics.put(i, currentRecalculatedEpic);
                 } else {
                     isTaskNew = false;
                 }
                 if (numberOfDone == numberOfSubtasks) {
-                    currentRecalculatedTask.setTaskStatus(TaskStatuses.DONE);
-                    myTasks.put(i, currentRecalculatedTask);
+                    currentRecalculatedEpic.setTaskStatus(TaskStatus.DONE);
+                    myEpics.put(i, currentRecalculatedEpic);
                 } else {
                     isTaskDone = false;
                 }
                 if (!isTaskNew && !isTaskDone) {//Если статус не NEW и не DONE, значит задача пока в состоянии IN_PROGRESS
-                    currentRecalculatedTask.setTaskStatus(TaskStatuses.IN_PROGRESS);
-                    myTasks.put(i, currentRecalculatedTask);//Сохраняем вычисленное значение родительской задачи
+                    currentRecalculatedEpic.setTaskStatus(TaskStatus.IN_PROGRESS);
+                    myEpics.put(i, currentRecalculatedEpic);//Сохраняем вычисленное значение родительской задачи
                 }
-            }
         }
     }
 }
