@@ -128,7 +128,7 @@ public class TaskManager {
             } else {//Если же подзадача уже была - надо проверить, совпадают ли ID родителя. Если совпадают - не можем создать подзадачу, так как у одного родителя не может быть две одинаковых подзадачи
                 for (Integer i : mySubTasks.keySet()) {//Смотрим в подзадачах, нашу подзадачу и проверяем её родительский ID
                     SubTask subtaskToCompare = mySubTasks.get(i);
-                    if (subtaskToCompare.getParentTaskID() != parentTaskID) {//Если ID НЕ совпадают, то можем создать подзадачу
+                    if (!subtaskToCompare.getParentTaskID().equals(parentTaskID)) {//Если ID НЕ совпадают, то можем создать подзадачу
                         SubTask newSubTask = new SubTask(taskDescription, taskDetails, TaskStatus.NEW, TasksType.SUBTASK, parentTaskID);
                         newSubTask.setTaskIndex(newSubTask.hashCode());
                         mySubTasks.put(newSubTask.hashCode(), newSubTask);
@@ -196,7 +196,9 @@ public class TaskManager {
         boolean canDeleteEpic = true;//Флаг того, что у эпика больше нет подзадач и он может быть удалён
         for (Integer i : mySubTasks.keySet()) {//Проверяем, что подзадачи не ссылаются на этот эпик
             SubTask subtaskLinkedToEpic = mySubTasks.get(i);
-            if (subtaskLinkedToEpic.getParentTaskID() == epicIDToDelete) {
+            System.out.println("Проверяю ID "+subtaskLinkedToEpic.getParentTaskID());
+            if (subtaskLinkedToEpic.getParentTaskID().equals(epicIDToDelete)) {
+                System.out.println("Есть связь - не  могу удалить эпик");
                 canDeleteEpic = false;
                 break;
             }
@@ -219,7 +221,7 @@ public class TaskManager {
         if (epicParentIDs >= 0) {//Если ID эпика нашли, то набираем ArrayList его подзадач
             for (Integer i : mySubTasks.keySet()) {//Сначала нам надо найти ID эпика
                 SubTask subtaskToCheckTheirParentId = mySubTasks.get(i);
-                if (subtaskToCheckTheirParentId.getParentTaskID() == epicParentIDs) {
+                if (subtaskToCheckTheirParentId.getParentTaskID().equals(epicParentIDs)) {
                     listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);
                 }
             }
@@ -237,7 +239,7 @@ public class TaskManager {
 
             for (Integer j : mySubTasks.keySet()) {//В цикле читаем статусы подзадач текущей родительской задачи для расчёта статуса родительской задачи
                 SubTask currentSubtaskToCalculateTask = mySubTasks.get(j);
-                if (currentSubtaskToCalculateTask.getParentTaskID() == i) {//Если у подзадачи родителем является текущая задача, то учитываем её статус в расчёте статуса родителя
+                if (currentSubtaskToCalculateTask.getParentTaskID().equals(i)) {//Если у подзадачи родителем является текущая задача, то учитываем её статус в расчёте статуса родителя
                     idsOfSubtasksForCurrentTask.add(currentSubtaskToCalculateTask.getTaskStatus());//Добавляем в список значения статуса у очередной подзадачи
                     numberOfSubtasks++;//Считаем сколько подзадач, что бы потом организовать цикл подсчёта
                 }
