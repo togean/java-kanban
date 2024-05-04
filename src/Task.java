@@ -45,6 +45,12 @@ public class Task {
     }
 
     @Override
+    public int hashCode(){
+        int hash = 100;
+        hash = hash + taskDescription.hashCode()+taskDetails.hashCode();
+        return hash;
+    }
+    @Override
     public boolean equals(Object obj){
         if(this == obj) return true;
         if(obj==null) return false;
