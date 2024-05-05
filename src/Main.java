@@ -10,7 +10,7 @@ public class Main {
         String myDetails;
         String myParentTask;
         String myStatus;
-        Integer indexToManipulate;
+        int indexToManipulate;
         TaskStatus myTaskStatus = TaskStatus.NEW;
         while (true) {
             printMenu();
@@ -147,15 +147,18 @@ public class Main {
     }
 
     public static void addTask(String taskDescription, String taskDetails) {//Функция добавления здачи
-        taskmanager.createTask(taskDescription, taskDetails);
+        Task newTask = new Task(taskDescription, taskDetails, TaskStatus.NEW);
+        taskmanager.createTask(newTask);
     }
 
-    public static void addSubTask(String taskDescription, String taskDetails, String parentTaskDescription) {//Функция добавления подздачи
-        taskmanager.createSubTask(taskDescription, taskDetails, parentTaskDescription);
+    public static void addSubTask(String subtaskDescription, String subtaskDetails, String parentTaskDescription) {//Функция добавления подздачи
+        SubTask newSubTask = new SubTask(subtaskDescription, subtaskDetails, TaskStatus.NEW, 0);
+        taskmanager.createSubTask(newSubTask);
     }
 
-    public static void addEpic(String taskDescription, String taskDetails) {//Функция добавления эпика
-        taskmanager.createEpic(taskDescription, taskDetails);
+    public static void addEpic(String epicDescription, String epicDetails) {//Функция добавления эпика
+        Epic newEpic = new Epic(epicDescription, epicDetails, TaskStatus.NEW);
+        taskmanager.createEpic(newEpic);
     }
 
     public static void updateTask(String taskDescription, String taskDetails, TaskStatus taskStatus) {//Функция обновления задач
@@ -169,7 +172,7 @@ public class Main {
     }
 
     public static void updateSubTask(String subtaskDescription, String subtaskDetails, TaskStatus subtaskStatus) {//Функция обновления подзадач
-        SubTask updatedSubTask = new SubTask(subtaskDescription, subtaskDetails, subtaskStatus, TasksType.SUBTASK, 0);//Создаём экземпляр подзадачи и передаём в таскменеджер для нахождения и обновления соответсвующей подзадачи
+        SubTask updatedSubTask = new SubTask(subtaskDescription, subtaskDetails, subtaskStatus, 0);//Создаём экземпляр подзадачи и передаём в таскменеджер для нахождения и обновления соответсвующей подзадачи
         taskmanager.updateSubTask(updatedSubTask);
     }
 
@@ -186,7 +189,8 @@ public class Main {
     }
 
     public static void getSubTasksOfEpic(String epicDescription) {//Функция получения всех подзадач заданного эпика
-        ArrayList<SubTask> listOfSubTasks = taskmanager.getSubTasksOfEpic(epicDescription);
+        Epic epicToGetListOfSubtask = taskmanager.getEpicByDescription(epicDescription);
+        ArrayList<SubTask> listOfSubTasks = taskmanager.getSubTasksOfEpic(epicToGetListOfSubtask.getTaskIndex());
         System.out.println("Список подзадач выбранного эпика (\"" + epicDescription + "\"): " + listOfSubTasks);
 
     }

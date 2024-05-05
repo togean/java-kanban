@@ -24,17 +24,10 @@ public class Task {
         return taskDescription;
     }
 
-    public void setTaskDescription(String taskDescription) {
-        this.taskDescription = taskDescription;
-    }
-
     public String getTaskDetails() {
         return taskDetails;
     }
 
-    public void setTaskDetails(String taskDetails) {
-        this.taskDetails = taskDetails;
-    }
 
     public TaskStatus getTaskStatus() {
         return taskStatus;
@@ -46,8 +39,16 @@ public class Task {
 
     @Override
     public int hashCode(){
-        int hash = 100;
-        hash = hash + taskDescription.hashCode()+taskDetails.hashCode();
+        int hash = 17;
+        if(taskDescription!=null){
+            hash = hash + taskDescription.hashCode();
+        }
+        if(taskDetails!=null){
+            hash = hash + taskDetails.hashCode();
+        }
+        if(hash<0){
+            hash=hash*(-1);
+        }
         return hash;
     }
     @Override
@@ -58,7 +59,7 @@ public class Task {
         Task task = (Task) obj;
         return Objects.equals(taskDescription, task.taskDescription) &&
                 Objects.equals(taskDetails, task.taskDetails) &&
-                (taskIndex==task.taskIndex);
+                (taskIndex.equals(task.taskIndex));
     }
     @Override
     public String toString() {
