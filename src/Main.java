@@ -8,9 +8,9 @@ public class Main {
 
         String myDescription;
         String myDetails;
-        String myParentTask;
         String myStatus;
         int indexToManipulate;
+        int  indexToManipulate2;
         TaskStatus myTaskStatus = TaskStatus.NEW;
         while (true) {
             printMenu();
@@ -35,12 +35,10 @@ public class Main {
                     myDescription = scanner.nextLine();
                     System.out.println("Введите details новой подзадачи: ");
                     myDetails = scanner.nextLine();
-                    System.out.println("Введите description родительской задачи: ");
-                    myParentTask = scanner.nextLine();
-                    addSubTask(myDescription, myDetails, myParentTask);
+                    addSubTask(myDescription, myDetails);
                     break;
                 case "3":
-                    System.out.println("Введите description обновляемой задачи: ");
+                    System.out.println("Введите ID обновляемой задачи: ");
                     myDescription = scanner.nextLine();
                     System.out.println("Введите новый details для задачи: ");
                     myDetails = scanner.nextLine();
@@ -58,14 +56,14 @@ public class Main {
                     updateTask(myDescription, myDetails, myTaskStatus);
                     break;
                 case "4":
-                    System.out.println("Введите description обновляемого эпика: ");
+                    System.out.println("Введите ID обновляемого эпика: ");
                     myDescription = scanner.nextLine();
                     System.out.println("Введите новый details для эпика: ");
                     myDetails = scanner.nextLine();
                     updateEpic(myDescription, myDetails, myTaskStatus);
                     break;
                 case "5":
-                    System.out.println("Введите description обновляемой подзадачи: ");
+                    System.out.println("Введите ID обновляемой подзадачи: ");
                     myDescription = scanner.nextLine();
                     System.out.println("Введите новый details для подзадачи: ");
                     myDetails = scanner.nextLine();
@@ -100,9 +98,9 @@ public class Main {
                     deleteAllTasks();
                     break;
                 case "11":
-                    System.out.println("Введите description эпика для вывода его подзадач: ");
-                    myDescription = scanner.nextLine();
-                    getSubTasksOfEpic(myDescription);
+                    System.out.println("Введите ID эпика для вывода его подзадач: ");
+                    int epicID = scanner.nextInt();
+                    getSubTasksOfEpic(epicID);
                     break;
                 case "12":
                     System.out.println("Введите номер задачи для удаления: ");
@@ -151,8 +149,8 @@ public class Main {
         taskmanager.createTask(newTask);
     }
 
-    public static void addSubTask(String subtaskDescription, String subtaskDetails, String parentTaskDescription) {//Функция добавления подздачи
-        SubTask newSubTask = new SubTask(subtaskDescription, subtaskDetails, TaskStatus.NEW, 0);
+    public static void addSubTask(String subtaskDescription, String subtaskDetails) {//Функция добавления подздачи
+        SubTask newSubTask = new SubTask(subtaskDescription, subtaskDetails, TaskStatus.NEW, 6377);//<-ВОТ ТУТ НАДО РОДИТЕЛЯ УКАЗАТЬ
         taskmanager.createSubTask(newSubTask);
     }
 
@@ -188,10 +186,9 @@ public class Main {
         taskmanager.getAllEpics();
     }
 
-    public static void getSubTasksOfEpic(String epicDescription) {//Функция получения всех подзадач заданного эпика
-        Epic epicToGetListOfSubtask = taskmanager.getEpicByDescription(epicDescription);
-        ArrayList<SubTask> listOfSubTasks = taskmanager.getSubTasksOfEpic(epicToGetListOfSubtask.getTaskIndex());
-        System.out.println("Список подзадач выбранного эпика (\"" + epicDescription + "\"): " + listOfSubTasks);
+    public static void getSubTasksOfEpic(int epic) {//Функция получения всех подзадач заданного эпика
+        ArrayList<SubTask> listOfSubTasks = taskmanager.getSubTasksOfEpic(epic);
+        System.out.println("Список подзадач выбранного эпика: " + listOfSubTasks);
 
     }
 
