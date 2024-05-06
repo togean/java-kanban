@@ -10,7 +10,6 @@ public class Main {
         String myDetails;
         String myStatus;
         int indexToManipulate;
-        int  indexToManipulate2;
         TaskStatus myTaskStatus = TaskStatus.NEW;
         while (true) {
             printMenu();

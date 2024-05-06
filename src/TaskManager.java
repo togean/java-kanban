@@ -52,7 +52,7 @@ public class TaskManager {
         mySubTasks.put(newSubTask.hashCode(), newSubTask);
         //Добавляем подзадачу в список подзадач эпика, если ID родителя в подзадаче не равен 0
         if(taskToBeCreated.getParentTaskID()>0) {
-            ArrayList<Integer> listOfEpicsSubTasks = new ArrayList<>();
+            ArrayList<Integer> listOfEpicsSubTasks;
             Epic epicToBeUpdated = myEpics.get(newSubTask.getParentTaskID());
             listOfEpicsSubTasks = myEpics.get(newSubTask.getParentTaskID()).getEpicSubtasks();
             listOfEpicsSubTasks.add(newSubTask.getTaskIndex());
