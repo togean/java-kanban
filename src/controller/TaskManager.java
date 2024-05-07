@@ -54,16 +54,24 @@ public class TaskManager {
         //Добавляем подзадачу в список подзадач эпика (В MAIN сечас родитель УКАЗАН РУКАМИ!!!!), если ID родителя в подзадаче не равен 0
         if(taskToBeCreated.getParentTaskID()>0) {
             ArrayList<Integer> listOfEpicsSubTasks = new ArrayList<>();
-            Epic epicToBeUpdated = Epics.get(taskToBeCreated.getParentTaskID());
-            if(Epics.get(taskToBeCreated.getParentTaskID()).getEpicSubtasks().size()==0){//Если у эпика ещё небыло подзадач (что бы не попасть на NullPointerException)
-                listOfEpicsSubTasks.add(taskToBeCreated.getTaskIndex());
-            }else{
-                listOfEpicsSubTasks = Epics.get(taskToBeCreated.getParentTaskID()).getEpicSubtasks();//У эпика уже были подзадачи, то расширяем список
-                listOfEpicsSubTasks.add(taskToBeCreated.getTaskIndex());
+            Epic epicToBeUpdated = Epics.get(taskToBeCreated.getParentTaskID());//создаём эпик для проверки, что родитель - эпик, а не таск
+            Task taskToCheck = Tasks.get(taskToBeCreated.getParentTaskID());//создаём эпик для проверки, что родитель - таск, а не эпик, тогда таск надо преобразить в эпик
+            if(taskToCheck!=null){//Нашли родителя в тасках - надо переделывать такс в эпик
+                Epic newEpic = new Epic(taskToCheck.getTaskDescription(), taskToCheck.getTaskDetails());
+                int index = createEpic(newEpic);
+                Tasks.remove(taskToCheck.getTaskIndex());
             }
-            epicToBeUpdated.setEpicSubtasks(listOfEpicsSubTasks);
-            updateEpic(epicToBeUpdated);//Обновляем список подзадаач для эпика
-            recalculateOrUpdateTaskStatus();//Пересчитываем статусы эпиков, так как мы изменили эпик
+            if(epicToBeUpdated!=null) {//Нашли родителя в эпиках
+                if (Epics.get(taskToBeCreated.getParentTaskID()).getEpicSubtasks().size() == 0) {//Если у эпика ещё небыло подзадач (что бы не попасть на NullPointerException)
+                    listOfEpicsSubTasks.add(taskToBeCreated.getTaskIndex());
+                } else {
+                    listOfEpicsSubTasks = Epics.get(taskToBeCreated.getParentTaskID()).getEpicSubtasks();//У эпика уже были подзадачи, то расширяем список
+                    listOfEpicsSubTasks.add(taskToBeCreated.getTaskIndex());
+                }
+                epicToBeUpdated.setEpicSubtasks(listOfEpicsSubTasks);
+                updateEpic(epicToBeUpdated);//Обновляем список подзадаач для эпика
+                recalculateOrUpdateTaskStatus();//Пересчитываем статусы эпиков, так как мы изменили эпик
+            }
         }
         return taskToBeCreated.getTaskIndex();
     }
@@ -101,7 +109,6 @@ public class TaskManager {
         for(Epic epicToClearSubtasks : Epics.values()){
             ArrayList<Integer> listOfEpicSubtasks = new ArrayList<>();
             epicToClearSubtasks.setEpicSubtasks(listOfEpicSubtasks);
-            System.out.println("Теперь список подзадач в эпике: "+epicToClearSubtasks.getEpicSubtasks());
             updateEpic(epicToClearSubtasks);
         }
 

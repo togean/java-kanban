@@ -77,18 +77,14 @@ public class Main {
                     System.out.println("Введите новый статус подзадачи (NEW, IN_PROGRESS, DONE): ");
                     myStatus = scanner.nextLine();
                     if (myStatus.equals("NEW")) {
-                        System.out.println("Введён статус одзадачи: "+myStatus);
                         myTaskStatus = TaskStatus.NEW;
                     }
                     if (myStatus.equals("DONE")) {
-                        System.out.println("Введён статус одзадачи: "+myStatus);
                         myTaskStatus = TaskStatus.DONE;
                     }
                     if (myStatus.equals("IN_PROGRESS")) {
-                        System.out.println("Введён статус одзадачи: "+myStatus);
                         myTaskStatus = TaskStatus.IN_PROGRESS;
                     }
-                    System.out.println("Введён статус подзадачи: "+myTaskStatus);
                     updateSubTask(subtaskID, myDetails, myTaskStatus);
                     break;
                 case "6":
@@ -161,7 +157,7 @@ public class Main {
     }
 
     public static void addSubTask(String subtaskDescription, String subtaskDetails) {//Функция добавления подздачи
-        SubTask newSubTask = new SubTask(subtaskDescription, subtaskDetails, TaskStatus.NEW, 6377);//<-ВОТ ТУТ НАДО РОДИТЕЛЯ УКАЗАТЬ
+        SubTask newSubTask = new SubTask(subtaskDescription, subtaskDetails, TaskStatus.NEW, 7307);//<-ВОТ ТУТ НАДО РОДИТЕЛЯ УКАЗАТЬ
         taskmanager.createSubTask(newSubTask);
     }
 
@@ -186,7 +182,6 @@ public class Main {
     public static void updateSubTask(Integer subtaskID, String subtaskDetails, TaskStatus subtaskStatus) {//Функция обновления подзадач
         SubTask updatedSubTask = new SubTask("TemporaryDescription", subtaskDetails, subtaskStatus, 0);//Создаём экземпляр подзадачи и передаём в таскменеджер для нахождения и обновления соответсвующей подзадачи
         updatedSubTask.setTaskIndex(subtaskID);
-        System.out.println("Статус подзадачи  объекте: "+updatedSubTask.getTaskStatus());
         taskmanager.updateSubTask(updatedSubTask);
     }
 
