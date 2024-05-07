@@ -27,24 +27,24 @@ public class TaskManager {
         int taskID = taskToBeCreated.hashCode();
         taskToBeCreated.setTaskIndex(taskID);
         taskToBeCreated.setTaskStatus(TaskStatus.NEW);
-        Tasks.put(taskID, taskToBeCreated);
-        return taskID;
+        Tasks.put(taskToBeCreated.getTaskIndex(), taskToBeCreated);
+        return taskToBeCreated.getTaskIndex();
     }
 
     public Integer createEpic(Epic epicToBeCreated) {
         int epicID = epicToBeCreated.hashCode();
         epicToBeCreated.setTaskIndex(epicID);
         epicToBeCreated.setTaskStatus(TaskStatus.NEW);
-        Epics.put(epicID, epicToBeCreated);
-        return epicID;
+        Epics.put(epicToBeCreated.getTaskIndex(), epicToBeCreated);
+        return epicToBeCreated.getTaskIndex();
     }
 
     public Integer createSubTask(SubTask taskToBeCreated) {
         int subTaskID = taskToBeCreated.hashCode();
         taskToBeCreated.setTaskIndex(subTaskID);
         taskToBeCreated.setTaskStatus(TaskStatus.NEW);
-        SubTasks.put(subTaskID, taskToBeCreated);
-        //Добавляем подзадачу в список подзадач эпика, если ID родителя в подзадаче не равен 0
+        SubTasks.put(taskToBeCreated.getTaskIndex(), taskToBeCreated);
+        //Добавляем подзадачу в список подзадач эпика (В MAIN сечас родитель УКАЗАН РУКАМИ!!!!), если ID родителя в подзадаче не равен 0
         if(taskToBeCreated.getParentTaskID()>0) {
             ArrayList<Integer> listOfEpicsSubTasks = new ArrayList<>();
             Epic epicToBeUpdated = Epics.get(taskToBeCreated.getParentTaskID());
@@ -58,7 +58,7 @@ public class TaskManager {
             updateEpic(epicToBeUpdated);//Обновляем список подзадаач для эпика
             recalculateOrUpdateTaskStatus();//Пересчитываем статусы эпиков, так как мы изменили эпик
         }
-        return subTaskID;
+        return taskToBeCreated.getTaskIndex();
     }
 
     public void updateTask(Task task) {
@@ -87,10 +87,22 @@ public class TaskManager {
         recalculateOrUpdateTaskStatus();//Пересчитываем статусы эпиков, так как мы изменили подзадачу
     }
 
-    public void deleteAllTasks() {//Это пункт 2.б из ТЗ - удление всех задач, эпиков и подзадач. УВЕРЕНЫ что это не нужно???
+    public void deleteTasks() {
         Tasks.clear();
+    }
+    public void deleteSubTasks() {
+        for(Epic epicToClearSubtasks : Epics.values()){
+            ArrayList<Integer> listOfEpicSubtasks = new ArrayList<>();
+            epicToClearSubtasks.setEpicSubtasks(listOfEpicSubtasks);
+            System.out.println("Теперь список подзадач в эпике: "+epicToClearSubtasks.getEpicSubtasks());
+            updateEpic(epicToClearSubtasks);
+        }
+
         SubTasks.clear();
+    }
+    public void deleteEpics() {
         Epics.clear();
+        SubTasks.clear();
     }
     public void deleteTask(Integer taskIDToDelete) {
         Tasks.remove(taskIDToDelete);

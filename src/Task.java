@@ -3,8 +3,8 @@ import java.util.Objects;
 public class Task {
     private String taskDescription;
     private String taskDetails;
-    Integer taskIndex;
-    TaskStatus taskStatus;
+    protected Integer taskIndex;
+    protected TaskStatus taskStatus;
 
     public Integer getTaskIndex() {
         return taskIndex;

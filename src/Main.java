@@ -205,7 +205,9 @@ public class Main {
     }
 
     public static void deleteAllTasks() {//Удаление всех задач, эпиков и подзадач
-        taskmanager.deleteAllTasks();
+        taskmanager.deleteTasks();
+        taskmanager.deleteSubTasks();
+        taskmanager.deleteEpics();
     }
 
     public static void deleteTask(Integer taskIDToDelete) {//Удаление конкретной задачи
