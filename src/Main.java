@@ -38,46 +38,51 @@ public class Main {
                     break;
                 case "3":
                     System.out.println("Введите ID обновляемой задачи: ");
-                    myDescription = scanner.nextLine();
+                    Integer taskID = scanner.nextInt();
+                    scanner.nextLine();
                     System.out.println("Введите новый details для задачи: ");
-                    myDetails = scanner.nextLine();
+                    String taskDetails = scanner.nextLine();
                     System.out.println("Введите новый статус задачи (NEW, IN_PROGRESS, DONE): ");
-                    myStatus = scanner.nextLine();
-                    if (myStatus.equals("NEW")) {
-                        myTaskStatus = TaskStatus.NEW;
+                    String Status = scanner.nextLine();
+                    TaskStatus taskStatus = TaskStatus.NEW;
+                    if (Status.equals("DONE")) {
+                        taskStatus = TaskStatus.DONE;
                     }
-                    if (myStatus.equals("DONE")) {
-                        myTaskStatus = TaskStatus.DONE;
+                    if (Status.equals("IN_PROGRESS")) {
+                        taskStatus = TaskStatus.IN_PROGRESS;
                     }
-                    if (myStatus.equals("IN_PROGRESS")) {
-                        myTaskStatus = TaskStatus.IN_PROGRESS;
-                    }
-                    updateTask(myDescription, myDetails, myTaskStatus);
+                    updateTask(taskID, taskDetails, taskStatus);
                     break;
                 case "4":
                     System.out.println("Введите ID обновляемого эпика: ");
-                    myDescription = scanner.nextLine();
+                    Integer epicID = scanner.nextInt();
+                    scanner.nextLine();
                     System.out.println("Введите новый details для эпика: ");
                     myDetails = scanner.nextLine();
-                    updateEpic(myDescription, myDetails, myTaskStatus);
+                    updateEpic(epicID, myDetails);
                     break;
                 case "5":
                     System.out.println("Введите ID обновляемой подзадачи: ");
-                    myDescription = scanner.nextLine();
+                    Integer subtaskID = scanner.nextInt();
+                    scanner.nextLine();
                     System.out.println("Введите новый details для подзадачи: ");
                     myDetails = scanner.nextLine();
                     System.out.println("Введите новый статус подзадачи (NEW, IN_PROGRESS, DONE): ");
                     myStatus = scanner.nextLine();
                     if (myStatus.equals("NEW")) {
+                        System.out.println("Введён статус одзадачи: "+myStatus);
                         myTaskStatus = TaskStatus.NEW;
                     }
                     if (myStatus.equals("DONE")) {
+                        System.out.println("Введён статус одзадачи: "+myStatus);
                         myTaskStatus = TaskStatus.DONE;
                     }
                     if (myStatus.equals("IN_PROGRESS")) {
+                        System.out.println("Введён статус одзадачи: "+myStatus);
                         myTaskStatus = TaskStatus.IN_PROGRESS;
                     }
-                    updateSubTask(myDescription, myDetails, myTaskStatus);
+                    System.out.println("Введён статус подзадачи: "+myTaskStatus);
+                    updateSubTask(subtaskID, myDetails, myTaskStatus);
                     break;
                 case "6":
                     getAllTasks();
@@ -98,8 +103,8 @@ public class Main {
                     break;
                 case "11":
                     System.out.println("Введите ID эпика для вывода его подзадач: ");
-                    int epicID = scanner.nextInt();
-                    getSubTasksOfEpic(epicID);
+                    int epicIDToGetListOfSubtasks = scanner.nextInt();
+                    getSubTasksOfEpic(epicIDToGetListOfSubtasks);
                     break;
                 case "12":
                     System.out.println("Введите номер задачи для удаления: ");
@@ -144,7 +149,7 @@ public class Main {
     }
 
     public static void addTask(String taskDescription, String taskDetails) {//Функция добавления здачи
-        Task newTask = new Task(taskDescription, taskDetails, TaskStatus.NEW);
+        Task newTask = new Task(taskDescription, taskDetails);
         taskmanager.createTask(newTask);
     }
 
@@ -154,35 +159,43 @@ public class Main {
     }
 
     public static void addEpic(String epicDescription, String epicDetails) {//Функция добавления эпика
-        Epic newEpic = new Epic(epicDescription, epicDetails, TaskStatus.NEW);
+        Epic newEpic = new Epic(epicDescription, epicDetails);
         taskmanager.createEpic(newEpic);
     }
 
-    public static void updateTask(String taskDescription, String taskDetails, TaskStatus taskStatus) {//Функция обновления задач
-        Task updatedTask = new Task(taskDescription, taskDetails, taskStatus);
+    public static void updateTask(Integer taskID, String taskDetails, TaskStatus taskStatus) {//Функция обновления задач
+        Task updatedTask = new Task("TemporaryDescription", taskDetails);
+        updatedTask.setTaskIndex(taskID);
+        updatedTask.setTaskStatus(taskStatus);
         taskmanager.updateTask(updatedTask);
     }
 
-    public static void updateEpic(String epicDescription, String epicDetails, TaskStatus epicStatus) {//Функция обновления задач
-        Epic updatedTask = new Epic(epicDescription, epicDetails, epicStatus);
-        taskmanager.updateEpic(updatedTask);
+    public static void updateEpic(Integer epicID, String epicDetails) {//Функция обновления задач
+        Epic updatedEpic = new Epic("TemporaryDescription", epicDetails);
+        updatedEpic.setTaskIndex(epicID);
+        taskmanager.updateEpic(updatedEpic);
     }
 
-    public static void updateSubTask(String subtaskDescription, String subtaskDetails, TaskStatus subtaskStatus) {//Функция обновления подзадач
-        SubTask updatedSubTask = new SubTask(subtaskDescription, subtaskDetails, subtaskStatus, 0);//Создаём экземпляр подзадачи и передаём в таскменеджер для нахождения и обновления соответсвующей подзадачи
+    public static void updateSubTask(Integer subtaskID, String subtaskDetails, TaskStatus subtaskStatus) {//Функция обновления подзадач
+        SubTask updatedSubTask = new SubTask("TemporaryDescription", subtaskDetails, subtaskStatus, 0);//Создаём экземпляр подзадачи и передаём в таскменеджер для нахождения и обновления соответсвующей подзадачи
+        updatedSubTask.setTaskIndex(subtaskID);
+        System.out.println("Статус подзадачи  объекте: "+updatedSubTask.getTaskStatus());
         taskmanager.updateSubTask(updatedSubTask);
     }
 
     public static void getAllTasks() {//Функция вывода задач и подзадач
-        taskmanager.getAllTasks();
+        ArrayList<Task> listOfTasks = taskmanager.getAllTasks();
+        System.out.println("Список задач: "+listOfTasks);
     }
 
     public static void getAllSubTasks() {//Функция вывода задач и подзадач
-        taskmanager.getAllSubTasks();
+        ArrayList<SubTask> listOfSubTasks = taskmanager.getAllSubTasks();
+        System.out.println("Список подзадач: "+listOfSubTasks);
     }
 
     public static void getAllEpics() {//Функция вывода задач и подзадач
-        taskmanager.getAllEpics();
+        ArrayList<Epic> listOfEpics = taskmanager.getAllEpics();
+        System.out.println("Список эпиков: "+listOfEpics);
     }
 
     public static void getSubTasksOfEpic(int epic) {//Функция получения всех подзадач заданного эпика

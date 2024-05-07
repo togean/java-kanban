@@ -13,11 +13,16 @@ public class Task {
     public void setTaskIndex(Integer taskIndex) {
         this.taskIndex = taskIndex;
     }
+    public void setTaskDescription(String taskDescription) {
+        this.taskDescription = taskDescription;
+    }
+    public void setTaskDetails(String taskDetails) {
+        this.taskDetails = taskDetails;
+    }
 
-    public Task(String taskDescription, String taskDetails, TaskStatus taskStatus) {
+    public Task(String taskDescription, String taskDetails) {
         this.taskDescription = taskDescription;
         this.taskDetails = taskDetails;
-        this.taskStatus = taskStatus;
     }
 
     public String getTaskDescription() {

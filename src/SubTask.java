@@ -2,7 +2,8 @@ public class SubTask extends Task {
     private Integer parentTaskID;
 
     public SubTask(String taskDescription, String taskDetails, TaskStatus taskStatus, int parentTaskID) {
-        super(taskDescription, taskDetails, taskStatus);
+        super(taskDescription, taskDetails);
+        super.taskStatus = taskStatus;
         this.parentTaskID = parentTaskID;
     }
 
