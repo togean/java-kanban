@@ -1,12 +1,10 @@
 package models;
 
-import controller.HistoryManager;
 import controller.InMemoryHistoryManager;
 import controller.InMemoryTaskManager;
 import controller.Managers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.w3c.dom.ls.LSOutput;
 
 import java.util.ArrayList;
 
