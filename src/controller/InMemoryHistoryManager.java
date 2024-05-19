@@ -12,7 +12,6 @@ public class InMemoryHistoryManager implements HistoryManager{
     }
     @Override
     public ArrayList<Task> getHistory(){
-        System.out.println("Было просмотрено "+historyListOfTasks.size()+" элементов");
         return historyListOfTasks;
     }
     @Override

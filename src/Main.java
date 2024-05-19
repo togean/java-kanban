@@ -10,7 +10,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         Managers manager = new Managers();//Создаём утилитарный класс
         InMemoryTaskManager managerForTasks = (InMemoryTaskManager) manager.getDefault();//Указываем ему какого менеджера создать через утилитарный класс
-        System.out.println("первый ID после создания таск-менеджера: "+managerForTasks.getTaskID());
+
         while (true) {
             printMenu();
             String Description;

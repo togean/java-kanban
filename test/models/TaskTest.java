@@ -1,11 +1,17 @@
 package models;
 
+import controller.HistoryManager;
+import controller.InMemoryHistoryManager;
 import controller.InMemoryTaskManager;
 import controller.Managers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.w3c.dom.ls.LSOutput;
+
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TaskTest {
     Managers manager = new Managers();//Создаём утилитарный класс
@@ -105,6 +111,73 @@ class TaskTest {
         managerForTasks.create(newSubTask);
         SubTask subTaskToCheck = (SubTask) managerForTasks.getTask(plannedSubTaskID);
         assertTrue(newSubTask.equals(subTaskToCheck), "Созданная подзадача изменяется при работе менеджера задач");
+    }
+
+    @Test
+    void canUpdateAnyTaskAsExpected(){
+        int plannedTaskID = managerForTasks.getTaskID();
+        StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
+        managerForTasks.create(newStandardtask);
+        String oldDetails = (managerForTasks.getTask(plannedTaskID)).getDetails();
+        TaskStatus oldStatus = (managerForTasks.getTask(plannedTaskID)).getTaskStatus();
+        managerForTasks.update(plannedTaskID, "Updated details",TaskStatus.IN_PROGRESS);
+        String updatedDetails = (managerForTasks.getTask(plannedTaskID)).getDetails();
+        TaskStatus updatedStatus = (managerForTasks.getTask(plannedTaskID)).getTaskStatus();
+        assertTrue(!updatedDetails.equals(oldDetails), "Обновлённое описание задачи не равно ожидаемому при обновлении");
+        assertTrue(!updatedStatus.equals(oldStatus), "Обновлённый статус задачи не равен ожидаемому при обновлении");
+
+        int plannedEpicID = managerForTasks.getTaskID();
+        StandardTask newEpic = new StandardTask("Epic1", "Epic1 details");
+        managerForTasks.create(newEpic);
+        String oldEpicDetails = (managerForTasks.getTask(plannedEpicID)).getDetails();
+        managerForTasks.update(plannedEpicID, "Updated details",TaskStatus.IN_PROGRESS);
+        String updatedEpicDetails = (managerForTasks.getTask(plannedEpicID)).getDetails();
+        assertTrue(!updatedEpicDetails.equals(oldEpicDetails), "Обновлённое описание эпика не равно ожидаемому при обновлении");
+
+        int plannedSubTaskID = managerForTasks.getTaskID();
+        SubTask newSubtask = new SubTask("SubTask1", "SubTask1 details", 1);
+        managerForTasks.create(newSubtask);
+        String oldSubtaskDetails = (managerForTasks.getTask(plannedSubTaskID)).getDetails();
+        TaskStatus oldSubtaskStatus = (managerForTasks.getTask(plannedSubTaskID)).getTaskStatus();
+        managerForTasks.update(plannedSubTaskID, "Updated details",TaskStatus.IN_PROGRESS);
+        String updatedSubTaskDetails = (managerForTasks.getTask(plannedSubTaskID)).getDetails();
+        TaskStatus updatedSubTaskStatus = (managerForTasks.getTask(plannedSubTaskID)).getTaskStatus();
+        assertTrue(!updatedSubTaskDetails.equals(oldSubtaskDetails), "Обновлённое описание подзадачи не равно ожидаемому при обновлении");
+        assertTrue(!updatedSubTaskStatus.equals(oldSubtaskStatus), "Обновлённый статус подзадачи не равен ожидаемому при обновлении");
+    }
+    @Test
+    void canDeleteTask(){
+        StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
+        managerForTasks.create(newStandardtask);
+        managerForTasks.delete(0);
+        assertNull(managerForTasks.getTask(0), "Задача не удалилась");
+    }
+    @Test
+    void canDeleteEpic(){
+        Epic newEpic = new Epic("Epic1", "Epic1 details");
+        managerForTasks.create(newEpic);
+        managerForTasks.delete(0);
+        assertNull(managerForTasks.getTask(0), "Эпик не удалился");
+
+    }
+    @Test
+    void canDeleteSubTask(){
+        Epic newEpic = new Epic("Epic1", "Epic1 details");
+        managerForTasks.create(newEpic);
+        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 0);
+        managerForTasks.create(newSubTask);
+        managerForTasks.delete(1);
+        assertNull(managerForTasks.getTask(1), "Задача не удалилась");
+    }
+    @Test
+    void canSaveHistory(){
+        InMemoryHistoryManager managerForHistory = managerForTasks.getManagerForHistory();
+        ArrayList<Task> listOfHistory;
+        StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
+        int id = managerForTasks.create(newStandardtask);
+        managerForTasks.getTask(id);
+        listOfHistory = managerForHistory.getHistory();
+        assertTrue(listOfHistory.size()>0, "задача не помещена в историю");
     }
 
 }
