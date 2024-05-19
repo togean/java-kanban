@@ -21,7 +21,6 @@ public class InMemoryTaskManager implements Manager{
     private Integer taskID = 1;
 
     public InMemoryTaskManager(Integer taskID) {
-        System.out.println("Создаю себя с ID ="+taskID);
         this.taskID = taskID;
     }
 
@@ -34,42 +33,47 @@ public class InMemoryTaskManager implements Manager{
     }
 
     @Override
-    public <T extends Task> void create(T taskToBeCreated) {
+    public <T extends Task> Integer create(T taskToBeCreated) {
+        int createdTaskID = 0;
         if(taskToBeCreated instanceof StandardTask){
             listOfStandardTasks.put(taskID, (StandardTask)taskToBeCreated);
-            System.out.println(taskToBeCreated);
+            createdTaskID = taskID;
             taskID++;
         }else if(taskToBeCreated instanceof SubTask){
             Integer subtaskID = taskID;
-            listOfSubtasks.put(subtaskID, (SubTask) taskToBeCreated);
-            System.out.println(taskToBeCreated);
-            //Сначала смотрим являетяс ли родитель просто задачей,а не эпиком и если да, то создаём эпик на основе задачи с сохранением ID, а содачу удаляем
-            StandardTask standardtaskToBeConvertedToEpic = listOfStandardTasks.get(((SubTask) taskToBeCreated).getParentID());
-            if(standardtaskToBeConvertedToEpic!=null){
-                Epic newEpicToBeCteated = new Epic(standardtaskToBeConvertedToEpic.getDescription(), standardtaskToBeConvertedToEpic.getId(), standardtaskToBeConvertedToEpic.getDetails());
-                listOfEpics.put(standardtaskToBeConvertedToEpic.getId(), newEpicToBeCteated);
-                listOfStandardTasks.remove(standardtaskToBeConvertedToEpic.getId());
-            }
-            //Теперь проверяем эпик и связываем его с создаваемой подзадачей
-            Epic epicToBeLinkedWithSubtask = listOfEpics.get(((SubTask) taskToBeCreated).getParentID());
-            if(epicToBeLinkedWithSubtask!=null) {
-                if(epicToBeLinkedWithSubtask.getListOfSubtasks()!=null) {//Если у эпика уже были подзадачи - надо список обновить
-                    ArrayList<Integer> listOfEpicsSubtasksToBeUpdated = epicToBeLinkedWithSubtask.getListOfSubtasks();
-                    listOfEpicsSubtasksToBeUpdated.add(subtaskID);
-                }else{//Если у эпика ещё нет подзадач, создаём новый список подзадач
-                    ArrayList<Integer> newListOfSubtasksForEpic = new ArrayList<>();
-                    newListOfSubtasksForEpic.add(subtaskID);
-                    epicToBeLinkedWithSubtask.setListOfTasks(newListOfSubtasksForEpic);
-                    listOfEpics.put(((SubTask) taskToBeCreated).getParentID(), epicToBeLinkedWithSubtask);
+            int parentID = ((SubTask) taskToBeCreated).getParentID();
+            if(!listOfSubtasks.containsKey(parentID)){
+                listOfSubtasks.put(subtaskID, (SubTask) taskToBeCreated);
+                //Сначала смотрим являетяс ли родитель просто задачей,а не эпиком и если да, то создаём эпик на основе задачи с сохранением ID, а содачу удаляем
+                StandardTask standardtaskToBeConvertedToEpic = listOfStandardTasks.get(((SubTask) taskToBeCreated).getParentID());
+                if (standardtaskToBeConvertedToEpic != null) {
+                    Epic newEpicToBeCteated = new Epic(standardtaskToBeConvertedToEpic.getDescription(), standardtaskToBeConvertedToEpic.getId(), standardtaskToBeConvertedToEpic.getDetails());
+                    listOfEpics.put(standardtaskToBeConvertedToEpic.getId(), newEpicToBeCteated);
+                    listOfStandardTasks.remove(standardtaskToBeConvertedToEpic.getId());
                 }
+                //Теперь проверяем эпик и связываем его с создаваемой подзадачей
+                Epic epicToBeLinkedWithSubtask = listOfEpics.get(((SubTask) taskToBeCreated).getParentID());
+                if (epicToBeLinkedWithSubtask != null) {
+                    if (epicToBeLinkedWithSubtask.getListOfSubtasks() != null) {//Если у эпика уже были подзадачи - надо список обновить
+                        ArrayList<Integer> listOfEpicsSubtasksToBeUpdated = epicToBeLinkedWithSubtask.getListOfSubtasks();
+                        listOfEpicsSubtasksToBeUpdated.add(subtaskID);
+                    } else {//Если у эпика ещё нет подзадач, создаём новый список подзадач
+                        ArrayList<Integer> newListOfSubtasksForEpic = new ArrayList<>();
+                        newListOfSubtasksForEpic.add(subtaskID);
+                        epicToBeLinkedWithSubtask.setListOfTasks(newListOfSubtasksForEpic);
+                        listOfEpics.put(((SubTask) taskToBeCreated).getParentID(), epicToBeLinkedWithSubtask);
+                    }
+                }
+                recalculateOrUpdateTaskStatus();
+                createdTaskID = taskID;
+                taskID++;
             }
-            recalculateOrUpdateTaskStatus();
-            taskID++;
         }else if(taskToBeCreated instanceof Epic){
             listOfEpics.put(taskID, (Epic)taskToBeCreated);
-            System.out.println(taskToBeCreated);
+            createdTaskID = taskID;
             taskID++;
         }
+        return createdTaskID;
     }
 
     @Override
