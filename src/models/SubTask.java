@@ -1,27 +1,29 @@
 package models;
 
-public class SubTask extends Task {
-    private Integer parentTaskID;
+public class SubTask extends Task{
+    private Integer parentID;
 
-    public SubTask(String taskDescription, String taskDetails, TaskStatus taskStatus, int parentTaskID) {
-        super(taskDescription, taskDetails);
-        super.taskStatus = taskStatus;
-        this.parentTaskID = parentTaskID;
+    public Integer getParentID() {
+        return parentID;
+    }
+
+    public void setParentID(Integer parentID) {
+        this.parentID = parentID;
     }
 
     @Override
     public String toString() {
-        String result;
-        result = "Подзадача: " + super.getTaskDescription() + ", описание: " + super.getTaskDetails() + ", тип задачи:SUBTASK, ID: " + this.taskIndex+ ", статус задачи: " + super.getTaskStatus();
-        result = result + ", ID родительской задачи: " + this.parentTaskID;
-        return result;
+        return "models.SubTask{" +
+                "description='" + super.getDescription() + '\'' +
+                ", status='" + super.getTaskStatus() + '\'' +
+                ", details='" + super.getDetails() + '\'' +
+                ", id=" + super.getId() +
+                ", parentID=" + parentID +
+                '}';
     }
 
-    public Integer getParentTaskID() {
-        return parentTaskID;
-    }
-
-    public void setParentTaskID(Integer parentTaskID) {
-        this.parentTaskID = parentTaskID;
+    public SubTask(String description, Integer id, String details, Integer parentID) {
+        super(description, id, details);
+        setParentID(parentID);
     }
 }

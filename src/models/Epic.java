@@ -2,24 +2,29 @@ package models;
 
 import java.util.ArrayList;
 public class Epic extends Task{
-    private ArrayList<Integer> epicSubtasks;
-    public ArrayList<Integer> getEpicSubtasks() {
-        return epicSubtasks;
+    ArrayList<Integer> listOfSubtasks;
+
+    public ArrayList<Integer> getListOfSubtasks() {
+        return listOfSubtasks;
     }
 
-    public void setEpicSubtasks(ArrayList<Integer> epicSubtasks) {
-        this.epicSubtasks = epicSubtasks;
-    }
-
-
-    public Epic(String taskDescription, String taskDetails){
-        super(taskDescription, taskDetails);
-        epicSubtasks = new ArrayList<>();
-    }
     @Override
     public String toString() {
-        String result;
-        result = "Задача: " + super.getTaskDescription() + ", описание: " + super.getTaskDetails() + ", тип задачи: EPIC, ID: " + this.taskIndex+", статус задачи: " + this.taskStatus;
-        return result;
+        return "models.Epic{" +
+                "description='" + super.getDescription() + '\'' +
+                ", status='" + super.getTaskStatus() + '\'' +
+                ", details='" + super.getDetails() + '\'' +
+                ", id=" + super.getId() +
+                ", listOfSubtasks=" + listOfSubtasks +
+                '}';
+    }
+
+    public void setListOfTasks(ArrayList<Integer> listOfTasks) {
+        this.listOfSubtasks = listOfTasks;
+    }
+
+    public Epic(String description, Integer id, String details) {
+        super(description, id, details);
+
     }
 }

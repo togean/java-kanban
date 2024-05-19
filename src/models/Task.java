@@ -2,39 +2,22 @@ package models;
 
 import java.util.Objects;
 
-public class Task {
-    private String taskDescription;
-    private String taskDetails;
-    protected Integer taskIndex;
-    protected TaskStatus taskStatus;
+public abstract class Task {
+    private String description;
+    private String details;
+    private TaskStatus taskStatus;
 
-    public Integer getTaskIndex() {
-        return taskIndex;
-    }
-
-    public void setTaskIndex(Integer taskIndex) {
-        this.taskIndex = taskIndex;
-    }
-    public void setTaskDescription(String taskDescription) {
-        this.taskDescription = taskDescription;
-    }
-    public void setTaskDetails(String taskDetails) {
-        this.taskDetails = taskDetails;
+    private Integer id;
+    public Task(String description, Integer id, String details) {
+        this.description = description;
+        this.details = details;
+        this.id = id;
+        this.taskStatus = TaskStatus.NEW;
     }
 
-    public Task(String taskDescription, String taskDetails) {
-        this.taskDescription = taskDescription;
-        this.taskDetails = taskDetails;
+    public String getDescription() {
+        return description;
     }
-
-    public String getTaskDescription() {
-        return taskDescription;
-    }
-
-    public String getTaskDetails() {
-        return taskDetails;
-    }
-
 
     public TaskStatus getTaskStatus() {
         return taskStatus;
@@ -44,34 +27,46 @@ public class Task {
         this.taskStatus = taskStatus;
     }
 
-    @Override
-    public int hashCode(){
-        int hash = 17;
-        if(taskDescription!=null){
-            hash = hash + taskDescription.hashCode();
-        }
-        if(taskDetails!=null){
-            hash = hash + taskDetails.hashCode();
-        }
-        if(hash<0){
-            hash=hash*(-1);
-        }
-        return hash;
+    public String getDetails() {
+        return details;
     }
-    @Override
-    public boolean equals(Object obj){
-        if(this == obj) return true;
-        if(obj==null) return false;
-        if(this.getClass()!=obj.getClass()) return false;
-        Task task = (Task) obj;
-        return Objects.equals(taskDescription, task.taskDescription) &&
-                Objects.equals(taskDetails, task.taskDetails) &&
-                (taskIndex.equals(task.taskIndex));
+
+    public void setDetails(String details) {
+        this.details = details;
     }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Task task = (Task) o;
+        return Objects.equals(description, task.description) && Objects.equals(details, task.details) && taskStatus == task.taskStatus && Objects.equals(id, task.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(description, details, taskStatus, id);
+    }
+
     @Override
     public String toString() {
-        String result;
-        result = "Задача: " + this.taskDescription + ", описание: " + this.taskDetails + ", тип задачи:TASK, ID: " + this.taskIndex+", статус задачи: " + this.taskStatus;
-        return result;
+        return "models.Task{" +
+                "description='" + description + '\'' +
+                ", details='" + details + '\'' +
+                ", status='" + taskStatus + '\'' +
+                ", id=" + id +
+                '}';
     }
 }
