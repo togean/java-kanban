@@ -3,8 +3,8 @@ package models;
 public class StandardTask extends Task {
     private final String standarttaskDetails;
 
-    public StandardTask(String description, Integer id, String standarttaskDetails) {
-        super(description, id, standarttaskDetails);
+    public StandardTask(String description, String standarttaskDetails) {
+        super(description, standarttaskDetails);
         this.standarttaskDetails = standarttaskDetails;
     }
 }

@@ -8,10 +8,11 @@ public abstract class Task {
     private TaskStatus taskStatus;
 
     private Integer id;
-    public Task(String description, Integer id, String details) {
+
+    public Task(String description, String details) {
         this.description = description;
         this.details = details;
-        this.id = id;
+//        this.id = id;
         this.taskStatus = TaskStatus.NEW;
     }
 

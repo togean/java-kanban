@@ -22,8 +22,8 @@ public class SubTask extends Task{
                 '}';
     }
 
-    public SubTask(String description, Integer id, String details, Integer parentID) {
-        super(description, id, details);
+    public SubTask(String description, String details, Integer parentID) {
+        super(description, details);
         setParentID(parentID);
     }
 }

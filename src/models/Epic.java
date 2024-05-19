@@ -23,8 +23,7 @@ public class Epic extends Task{
         this.listOfSubtasks = listOfTasks;
     }
 
-    public Epic(String description, Integer id, String details) {
-        super(description, id, details);
-
+    public Epic(String description, String details) {
+        super(description, details);
     }
 }

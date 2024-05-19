@@ -26,7 +26,7 @@ public class Main {
                     Description = scanner.nextLine();
                     System.out.println("Введите details новой задачи: ");
                     Details = scanner.nextLine();
-                    StandardTask newStandardtask = new StandardTask(Description, managerForTasks.getTaskID(), Details);
+                    StandardTask newStandardtask = new StandardTask(Description, Details);
                     managerForTasks.create(newStandardtask);
                     break;
                 case "1":
@@ -34,7 +34,7 @@ public class Main {
                     Description = scanner.nextLine();
                     System.out.println("Введите details нового эпика: ");
                     Details = scanner.nextLine();
-                    Epic newEpic = new Epic(Description, managerForTasks.getTaskID(), Details);
+                    Epic newEpic = new Epic(Description, Details);
                     managerForTasks.create(newEpic);
                     break;
                 case "2":
@@ -44,7 +44,7 @@ public class Main {
                     Details = scanner.nextLine();
                     System.out.println("Введите родителя новой подзадачи: ");
                     parentIDForSubtask = scanner.nextInt();
-                    SubTask newSubTask = new SubTask(Description, managerForTasks.getTaskID(), Details, parentIDForSubtask);
+                    SubTask newSubTask = new SubTask(Description, Details, parentIDForSubtask);
                     managerForTasks.create(newSubTask);
                     break;
                 case "3","5":
