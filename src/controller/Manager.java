@@ -1,18 +1,44 @@
 package controller;
 
-import models.SubTask;
-import models.Task;
-import models.TaskStatus;
+import models.*;
 
 import java.util.ArrayList;
 
 public interface Manager {
-    <T extends Task> Integer create(T newTask);
-    void delete(Integer taskToBeDeleted);
-    void update(Integer taskID, String taskNewDetails, TaskStatus taskNewStatus);
-    Task getTask(Integer taskToBeDisplayedByID);
+    Integer createTask(StandardTask newTask);
+
+    Integer createEpic(Epic newTask);
+
+    Integer createSubtask(SubTask newTask);
+
+    void deleteTask(Integer taskToBeDeleted);
+
+    void deleteEpic(Integer taskToBeDeleted);
+
+    void deleteSubtask(Integer taskToBeDeleted);
+
+    void updateTask(Integer taskID, String taskNewDetails, TaskStatus taskNewStatus);
+
+    void updateSubtask(Integer taskID, String taskNewDetails, TaskStatus taskNewStatus);
+
+    void updateEpic(Integer taskID, String taskNewDetails, TaskStatus taskNewStatus);
+
+    SubTask getSubTask(Integer taskToBeDisplayedByID);
+
+    StandardTask getTask(Integer taskToBeDisplayedByID);
+
+    Epic getEpic(Integer taskToBeDisplayedByID);
+
     void deleteAll();
+
     ArrayList<SubTask> getSubTasksOfEpic(int epicID);
+
     ArrayList<Task> getHistory();
-    ArrayList<Task> getAll(String typeOfTasksToList);
+
+    //ArrayList<Task> getAll(String typeOfTasksToList);
+    ArrayList<SubTask> getAllSubtasks();
+
+    ArrayList<Epic> getAllEpics();
+
+    ArrayList<Task> getAllTasks();
 }

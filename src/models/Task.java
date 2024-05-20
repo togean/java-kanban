@@ -12,7 +12,6 @@ public abstract class Task {
     public Task(String description, String details) {
         this.description = description;
         this.details = details;
-//        this.id = id;
         this.taskStatus = TaskStatus.NEW;
     }
 

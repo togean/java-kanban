@@ -1,6 +1,6 @@
 package models;
 
-public class SubTask extends Task{
+public class SubTask extends Task {
     private Integer parentID;
 
     public Integer getParentID() {

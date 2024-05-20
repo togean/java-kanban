@@ -1,7 +1,7 @@
 package models;
 
 import java.util.ArrayList;
-public class Epic extends Task{
+public class Epic extends Task {
     ArrayList<Integer> listOfSubtasks;
 
     public ArrayList<Integer> getListOfSubtasks() {
