@@ -2,7 +2,7 @@ package models;
 
 import java.util.ArrayList;
 public class Epic extends Task {
-    ArrayList<Integer> listOfSubtasks;
+    ArrayList<Integer> listOfSubtasks = new ArrayList<>();
 
     public ArrayList<Integer> getListOfSubtasks() {
         return listOfSubtasks;
@@ -25,5 +25,6 @@ public class Epic extends Task {
 
     public Epic(String description, String details) {
         super(description, details);
+        listOfSubtasks.add(0);
     }
 }

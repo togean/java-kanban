@@ -25,8 +25,8 @@ class TaskTest {
         StandardTask newTask = new StandardTask("task1", "task1 details");
         managerForTasks.createTask(newTask);
         StandardTask newTask1, newTask2;
-        newTask1 = managerForTasks.getTask(0);
-        newTask2 = managerForTasks.getTask(0);
+        newTask1 = managerForTasks.getTask(1);
+        newTask2 = managerForTasks.getTask(1);
         assertTrue(newTask1.equals(newTask2), "Таски " + newTask1 + " и " + newTask2 + " не равны друг другу");
 
     }
@@ -36,8 +36,8 @@ class TaskTest {
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
         managerForTasks.createTask(newStandardtask);
         Task newTask1, newTask2;
-        newTask1 = managerForTasks.getTask(0);
-        newTask2 = managerForTasks.getTask(0);
+        newTask1 = managerForTasks.getTask(1);
+        newTask2 = managerForTasks.getTask(1);
         assertTrue(newTask1.equals(newTask2), "Таски " + newTask1 + " и " + newTask2 + " не равны друг другу");
     }
 
@@ -46,8 +46,8 @@ class TaskTest {
         Epic newEpic = new Epic("Epic1", "Epic1 details");
         managerForTasks.createEpic(newEpic);
         Epic newEpic1, newEpic2;
-        newEpic1 = managerForTasks.getEpic(0);
-        newEpic2 = managerForTasks.getEpic(0);
+        newEpic1 = managerForTasks.getEpic(1);
+        newEpic2 = managerForTasks.getEpic(1);
         assertTrue(newEpic1.equals(newEpic2), "Таски " + newEpic1 + " и " + newEpic2 + " не равны друг другу");
     }
 
@@ -55,11 +55,11 @@ class TaskTest {
     void twoInstancesOfSubTasksIsEqualsIfItHasSameID() {
         Epic newEpic = new Epic("Epic1", "Epic1 details");//Сначала создаём эпик для связи с подзадачей
         managerForTasks.createEpic(newEpic);
-        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 0);
+        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1);
         managerForTasks.createSubtask(newSubTask);
         SubTask newSubTask1, newSubTask2;
-        newSubTask1 = managerForTasks.getSubTask(1);//Запрашиваем одинаковый ID подзадачи
-        newSubTask2 = managerForTasks.getSubTask(1);
+        newSubTask1 = managerForTasks.getSubTask(2);//Запрашиваем одинаковый ID подзадачи
+        newSubTask2 = managerForTasks.getSubTask(2);
         assertTrue(newSubTask1.equals(newSubTask2), "Таски " + newSubTask1 + " и " + newSubTask2 + " не равны друг другу");
     }
 
@@ -67,11 +67,11 @@ class TaskTest {
     void subtaskCanNotBeEpicForOtherSubtask() {
         Epic newEpic = new Epic("Epic1", "Epic1 details");//Сначала создаём эпик для связи с подзадачей
         managerForTasks.createEpic(newEpic);
-        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 0);
+        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1);
         managerForTasks.createSubtask(newSubTask);
-        SubTask newSubTask2 = new SubTask("SubTask2", "SubTask2 details", 0);
+        SubTask newSubTask2 = new SubTask("SubTask2", "SubTask2 details", 1);
         managerForTasks.createSubtask(newSubTask2);
-        SubTask newSubTask3 = new SubTask("SubTask1", "SubTask1 details", 2);//Вторая подзадача создаётся с ID=2, по этому его тут и пробуем
+        SubTask newSubTask3 = new SubTask("SubTask1", "SubTask1 details", 3);//Вторая подзадача создаётся с ID=2, по этому его тут и пробуем
         int result = managerForTasks.createSubtask(newSubTask3);
         assertTrue(result == 0, "Созданная подзадача пытается сослаться на подзадачу как на эпик");
     }
@@ -91,7 +91,7 @@ class TaskTest {
         assertTrue(newEpic.getId() == createdEpicID, "Созданный эпик не корректно создаётся и не находится под ожидаемым ID");
 
         int plannedSubTaskID = managerForTasks.getTaskID();
-        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1);
+        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 2);
         int createdSubTaskID = managerForTasks.createSubtask(newSubTask);
         newSubTask = managerForTasks.getSubTask(plannedSubTaskID);
         assertTrue(newSubTask.getId() == createdSubTaskID, "Созданная подзадача не корректно создаётся и не находится под ожидаемым ID");
@@ -113,7 +113,7 @@ class TaskTest {
         assertTrue(newEpic.equals(epicToCheck), "Созданный эпик изменяется при работе менеджера задач");
 
         int plannedSubTaskID = managerForTasks.getTaskID();
-        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1);
+        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 2);
         managerForTasks.createSubtask(newSubTask);
         SubTask subTaskToCheck = managerForTasks.getSubTask(plannedSubTaskID);
         assertTrue(newSubTask.equals(subTaskToCheck), "Созданная подзадача изменяется при работе менеджера задач");
@@ -141,7 +141,7 @@ class TaskTest {
         assertTrue(!updatedEpicDetails.equals(oldEpicDetails), "Обновлённое описание эпика не равно ожидаемому при обновлении");
 
         int plannedSubTaskID = managerForTasks.getTaskID();
-        SubTask newSubtask = new SubTask("SubTask1", "SubTask1 details", 1);
+        SubTask newSubtask = new SubTask("SubTask1", "SubTask1 details", 2);
         managerForTasks.createSubtask(newSubtask);
         String oldSubtaskDetails = (managerForTasks.getSubTask(plannedSubTaskID)).getDetails();
         TaskStatus oldSubtaskStatus = (managerForTasks.getSubTask(plannedSubTaskID)).getTaskStatus();
@@ -156,16 +156,16 @@ class TaskTest {
     void canDeleteTask() {
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
         managerForTasks.createTask(newStandardtask);
-        managerForTasks.deleteTask(0);
-        assertNull(managerForTasks.getTask(0), "Задача не удалилась");
+        managerForTasks.deleteTask(1);
+        assertNull(managerForTasks.getTask(1), "Задача не удалилась");
     }
 
     @Test
     void canDeleteEpic() {
         Epic newEpic = new Epic("Epic1", "Epic1 details");
         managerForTasks.createEpic(newEpic);
-        managerForTasks.deleteEpic(0);
-        assertNull(managerForTasks.getTask(0), "Эпик не удалился");
+        managerForTasks.deleteEpic(1);
+        assertNull(managerForTasks.getTask(1), "Эпик не удалился");
 
     }
 
@@ -173,10 +173,10 @@ class TaskTest {
     void canDeleteSubTask() {
         Epic newEpic = new Epic("Epic1", "Epic1 details");
         managerForTasks.createEpic(newEpic);
-        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 0);
+        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1);
         managerForTasks.createSubtask(newSubTask);
-        managerForTasks.deleteSubtask(1);
-        assertNull(managerForTasks.getTask(1), "Задача не удалилась");
+        managerForTasks.deleteSubtask(2);
+        assertNull(managerForTasks.getTask(2), "Задача не удалилась");
     }
 
     @Test

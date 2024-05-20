@@ -47,17 +47,10 @@ public class InMemoryTaskManager implements Manager {
             //Проверяем эпик и связываем его с создаваемой подзадачей
             Epic epicToBeLinkedWithSubtask = listOfEpics.get(taskToBeCreated.getParentID());
             if (epicToBeLinkedWithSubtask != null) {
-                if (epicToBeLinkedWithSubtask.getListOfSubtasks() != null) {//Если у эпика уже были подзадачи - надо список обновить
-                    ArrayList<Integer> listOfEpicsSubtasksToBeUpdated = epicToBeLinkedWithSubtask.getListOfSubtasks();
-                    listOfEpicsSubtasksToBeUpdated.add(subtaskID);
-                    epicToBeLinkedWithSubtask.setListOfTasks(listOfEpicsSubtasksToBeUpdated);
-                    listOfEpics.put(taskToBeCreated.getParentID(), epicToBeLinkedWithSubtask);
-                } else {//Если у эпика ещё нет подзадач, создаём новый список подзадач
-                    ArrayList<Integer> newListOfSubtasksForEpic = new ArrayList<>();
-                    newListOfSubtasksForEpic.add(subtaskID);
-                    epicToBeLinkedWithSubtask.setListOfTasks(newListOfSubtasksForEpic);
-                    listOfEpics.put(taskToBeCreated.getParentID(), epicToBeLinkedWithSubtask);
-                }
+                ArrayList<Integer> listOfEpicsSubtasksToBeUpdated = epicToBeLinkedWithSubtask.getListOfSubtasks();
+                listOfEpicsSubtasksToBeUpdated.add(subtaskID);
+                epicToBeLinkedWithSubtask.setListOfTasks(listOfEpicsSubtasksToBeUpdated);
+                listOfEpics.put(taskToBeCreated.getParentID(), epicToBeLinkedWithSubtask);
             }
             recalculateOrUpdateTaskStatus();
             createdTaskID = taskID;
@@ -210,22 +203,25 @@ public class InMemoryTaskManager implements Manager {
     private void recalculateOrUpdateTaskStatus() {
         for (Integer i : listOfEpics.keySet()) {//Проходим по каждому эпику
             Epic currentRecalculatedEpic = listOfEpics.get(i);
+            int numberOfSubtsaksInEpic = currentRecalculatedEpic.getListOfSubtasks().size();
             int numberOfNew = 0; //Кол-во подзадач статуса New
             int numberOfDone = 0; //Кол-во подзадач статуса DONE
             ArrayList<Integer> listOfEpicSubtasks = listOfEpics.get(i).getListOfSubtasks();//Тут будут ID-шники подзадач текущего эпика
-            for (Integer j : listOfEpicSubtasks) {//В цикле читаем статусы подзадач текущей родительской задачи для расчёта статуса родительской задачи
+            for (int j = 1; j < numberOfSubtsaksInEpic; j++) { //В цикле читаем статусы подзадач текущей родительской задачи для расчёта статуса родительской задачи
                 SubTask currentSubtaskToCalculateStatus = listOfSubtasks.get(j);
-                if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.NEW)) {
-                    numberOfNew++;
-                }
-                if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.DONE)) {
-                    numberOfDone++;
+                if(currentSubtaskToCalculateStatus!=null) {
+                    if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.NEW)) {
+                        numberOfNew++;
+                    }
+                    if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.DONE)) {
+                        numberOfDone++;
+                    }
                 }
             }
-            if (numberOfNew == listOfEpicSubtasks.size()) {
+            if (numberOfNew == listOfEpicSubtasks.size()-1) { //Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
                 currentRecalculatedEpic.setTaskStatus(TaskStatus.NEW);
                 listOfEpics.put(i, currentRecalculatedEpic);
-            } else if (numberOfDone == listOfEpicSubtasks.size()) {
+            } else if (numberOfDone == listOfEpicSubtasks.size()-1) {//Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
                 currentRecalculatedEpic.setTaskStatus(TaskStatus.DONE);
                 listOfEpics.put(i, currentRecalculatedEpic);
             } else {//Если статус не NEW и не DONE, значит задача пока в состоянии IN_PROGRESS
