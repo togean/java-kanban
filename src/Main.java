@@ -41,7 +41,7 @@ public class Main {
                     Description = scanner.nextLine();
                     System.out.println("Введите details новой подзадачи: ");
                     Details = scanner.nextLine();
-                    System.out.println("Введите родителя новой подзадачи: ");
+                    System.out.println("Введите id эпика для новой подзадачи: ");
                     parentIDForSubtask = scanner.nextInt();
                     SubTask newSubTask = new SubTask(Description, Details, parentIDForSubtask);
                     managerForTasks.createSubtask(newSubTask);
@@ -98,13 +98,13 @@ public class Main {
                     System.out.println("Все подзадачи: " + managerForTasks.getAllSubtasks());
                     break;
                 case "9":
-                    managerForTasks.deleteAll();
-                    break;
-                case "10":
                     System.out.println("Введите ID эпика для вывода его подзадач: ");
                     int epicIDToGetListOfSubtasks = scanner.nextInt();
                     scanner.nextLine();
                     System.out.println("Список подзадач: " + managerForTasks.getSubTasksOfEpic(epicIDToGetListOfSubtasks));
+                    break;
+                case "10":
+                    managerForTasks.deleteAll();
                     break;
                 case "11":
                     System.out.println("Введите ID задачи для удаления: ");
@@ -162,9 +162,9 @@ public class Main {
         System.out.println("6. Вывести все задачи");
         System.out.println("7. Вывести все эпики");
         System.out.println("8. Вывести все подзадачи");
+        System.out.println("9. Вывести список подзадач эпика");
         System.out.println("------- Меню удаления ------- ");
-        System.out.println("9. Удалить все задачи, эпики и подзадачи");
-        System.out.println("10. Получить список подзадач эпика (тут история НЕ ведётся)");
+        System.out.println("10. Удалить все задачи, эпики и подзадачи");
         System.out.println("11. Удалить задачу по ID");
         System.out.println("12. Удалить эпик по ID");
         System.out.println("13. Удалить подзадачу по ID");
