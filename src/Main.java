@@ -8,8 +8,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        Managers manager = new Managers();//Создаём утилитарный класс
-        InMemoryTaskManager managerForTasks = (InMemoryTaskManager) manager.getDefault();//Указываем ему какого менеджера создать через утилитарный класс
+        InMemoryTaskManager managerForTasks = (InMemoryTaskManager) Managers.getDefault();//Указываем ему какого менеджера создать через утилитарный класс
 
         while (true) {
             printMenu();

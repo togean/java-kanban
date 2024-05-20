@@ -2,6 +2,7 @@ package models;
 
 import controller.HistoryManager;
 import controller.InMemoryTaskManager;
+import controller.Manager;
 import controller.Managers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TaskTest {
     Managers manager = new Managers();//Создаём утилитарный класс
     InMemoryTaskManager managerForTasks;
+
 
     @BeforeEach
     public void BeforeEach() {
@@ -188,5 +190,30 @@ class TaskTest {
         managerForTasks.getTask(id);
         listOfHistory = managerForTasks.getHistory();
         assertTrue(listOfHistory.size() > 0, "задача не помещена в историю");
+    }
+    @Test
+    void managerShouldReturnRealInstancesOfManagers(){
+        Manager newManagerForTest = Managers.getDefault();
+        Epic newEpic = new Epic("Epic1", "Epic1 details");
+        int EpicID = newManagerForTest.createEpic(newEpic);
+        assertNotNull(EpicID, "Новый taskMeneger неправильно реализовал эпик");
+
+        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1);
+        int SubTaskID = newManagerForTest.createSubtask(newSubTask);
+        assertNotNull(SubTaskID, "Новый taskMeneger неправильно реализовал эпик");
+
+
+        HistoryManager newHistoryManager = Managers.getDefaultHistory();
+        newHistoryManager.add(newEpic);
+        assertNotNull(newHistoryManager.getHistory(), "HistoryManager неправильно вернул getHistory");
+    }
+    @Test
+    void tryToGetSubtasksOfEpic(){
+        Epic newEpic = new Epic("Epic1", "Epic1 details");
+        managerForTasks.createEpic(newEpic);
+        SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1);
+        managerForTasks.createSubtask(newSubTask);
+        ArrayList<SubTask> listOfSubtasks = managerForTasks.getSubTasksOfEpic(1);
+        assertNotNull(listOfSubtasks, "Проблемы с получением подзадач эпика");
     }
 }
