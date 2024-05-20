@@ -13,13 +13,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TaskTest {
-    Managers manager = new Managers();//Создаём утилитарный класс
     InMemoryTaskManager managerForTasks;
 
 
     @BeforeEach
     public void BeforeEach() {
-        managerForTasks = (InMemoryTaskManager) manager.getDefault();
+        managerForTasks = (InMemoryTaskManager) Managers.getDefault();
     }
 
     @Test
@@ -83,7 +82,7 @@ class TaskTest {
         int plannedTaskID = managerForTasks.getTaskID();
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
         int createdtaskID = managerForTasks.createTask(newStandardtask);
-        newStandardtask = (StandardTask) managerForTasks.getTask(plannedTaskID);
+        newStandardtask = managerForTasks.getTask(plannedTaskID);
         assertTrue(newStandardtask.getId() == createdtaskID, "Созданная задача некорректно создаётся и не находится под ожидаемым ID");
 
         int plannedEpicID = managerForTasks.getTaskID();
@@ -105,7 +104,7 @@ class TaskTest {
         int plannedTaskID = managerForTasks.getTaskID();
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
         managerForTasks.createTask(newStandardtask);
-        StandardTask standardtaskToCheck = (StandardTask) managerForTasks.getTask(plannedTaskID);
+        StandardTask standardtaskToCheck = managerForTasks.getTask(plannedTaskID);
         assertTrue(newStandardtask.equals(standardtaskToCheck), "Созданная задача изменяется при работе менеджера задач");
 
         int plannedEpicID = managerForTasks.getTaskID();
@@ -183,7 +182,6 @@ class TaskTest {
 
     @Test
     void canSaveHistory() {
-        HistoryManager managerForHistory = managerForTasks.getManagerForHistory();
         ArrayList<Task> listOfHistory;
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
         int id = managerForTasks.createTask(newStandardtask);
