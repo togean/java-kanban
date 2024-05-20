@@ -68,30 +68,37 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public void deleteSubtask(Integer taskToBeDeleted) {
         SubTask subtaskToBeDeleted = listOfSubtasks.get(taskToBeDeleted);
-        Epic epicToBeUnLinkedWithDeletedSubtask = listOfEpics.get(subtaskToBeDeleted.getParentID());
-        ArrayList<Integer> listOfEpicsSubtasks = epicToBeUnLinkedWithDeletedSubtask.getListOfSubtasks();
-        listOfEpicsSubtasks.remove(subtaskToBeDeleted.getId());
-        epicToBeUnLinkedWithDeletedSubtask.setListOfTasks(listOfEpicsSubtasks);
-        listOfEpics.put(epicToBeUnLinkedWithDeletedSubtask.getId(), epicToBeUnLinkedWithDeletedSubtask);
-        listOfSubtasks.remove(taskToBeDeleted);
+        if(subtaskToBeDeleted!=null) {//Проверка, что запрошенный ID на удаление есть в списках
+            Epic epicToBeUnLinkedWithDeletedSubtask = listOfEpics.get(subtaskToBeDeleted.getParentID());
+            ArrayList<Integer> listOfEpicsSubtasks = epicToBeUnLinkedWithDeletedSubtask.getListOfSubtasks();
+            listOfEpicsSubtasks.remove(subtaskToBeDeleted.getId());
+            epicToBeUnLinkedWithDeletedSubtask.setListOfTasks(listOfEpicsSubtasks);
+            listOfEpics.put(epicToBeUnLinkedWithDeletedSubtask.getId(), epicToBeUnLinkedWithDeletedSubtask);
+            listOfSubtasks.remove(taskToBeDeleted);
+        }
     }
 
     @Override
     public void deleteTask(Integer taskToBeDeleted) {
-        listOfStandardTasks.remove(taskToBeDeleted);
+        StandardTask standardtaskToBeDeleted = listOfStandardTasks.get(taskToBeDeleted);
+        if(standardtaskToBeDeleted!=null) {
+            listOfStandardTasks.remove(taskToBeDeleted);
+        }
     }
 
     @Override
     public void deleteEpic(Integer taskToBeDeleted) {
         Epic epicToBeDeleted = listOfEpics.get(taskToBeDeleted);
-        ArrayList<Integer> listOfSubtasksToBeDeleted;
-        listOfSubtasksToBeDeleted = epicToBeDeleted.getListOfSubtasks();
-        if (listOfSubtasksToBeDeleted != null) {
-            for (int i : listOfSubtasksToBeDeleted) {
-                listOfSubtasks.remove(i);
+        if(epicToBeDeleted!=null) {
+            ArrayList<Integer> listOfSubtasksToBeDeleted;
+            listOfSubtasksToBeDeleted = epicToBeDeleted.getListOfSubtasks();
+            if (listOfSubtasksToBeDeleted != null) {
+                for (int i : listOfSubtasksToBeDeleted) {
+                    listOfSubtasks.remove(i);
+                }
             }
+            listOfEpics.remove(taskToBeDeleted);
         }
-        listOfEpics.remove(taskToBeDeleted);
     }
 
     @Override
@@ -107,45 +114,57 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public void updateTask(Integer taskID, String taskNewDetails, TaskStatus taskNewStatus) {
         StandardTask standardtaskToBeUpdated = listOfStandardTasks.get(taskID);
-        standardtaskToBeUpdated.setDetails(taskNewDetails);
-        standardtaskToBeUpdated.setTaskStatus(taskNewStatus);
-        listOfStandardTasks.put(taskID, standardtaskToBeUpdated);
+        if(standardtaskToBeUpdated!=null) {
+            standardtaskToBeUpdated.setDetails(taskNewDetails);
+            standardtaskToBeUpdated.setTaskStatus(taskNewStatus);
+            listOfStandardTasks.put(taskID, standardtaskToBeUpdated);
+        }
     }
 
     @Override
     public void updateSubtask(Integer subtaskID, String subtaskNewDetails, TaskStatus subtaskNewStatus) {
         SubTask subtaskToBeUpdated = listOfSubtasks.get(subtaskID);
-        subtaskToBeUpdated.setDetails(subtaskNewDetails);
-        subtaskToBeUpdated.setTaskStatus(subtaskNewStatus);
-        listOfSubtasks.put(subtaskID, subtaskToBeUpdated);
-        recalculateOrUpdateTaskStatus();
+        if(subtaskToBeUpdated!=null) {
+            subtaskToBeUpdated.setDetails(subtaskNewDetails);
+            subtaskToBeUpdated.setTaskStatus(subtaskNewStatus);
+            listOfSubtasks.put(subtaskID, subtaskToBeUpdated);
+            recalculateOrUpdateTaskStatus();
+        }
     }
 
     @Override
     public void updateEpic(Integer epicID, String epicNewDetails, TaskStatus epicNewStatus) {
         Epic epicToBeUpdated = listOfEpics.get(epicID);
-        epicToBeUpdated.setDetails(epicNewDetails);
-        listOfEpics.put(epicID, epicToBeUpdated);
+        if(epicToBeUpdated!=null) {
+            epicToBeUpdated.setDetails(epicNewDetails);
+            listOfEpics.put(epicID, epicToBeUpdated);
+        }
     }
 
     @Override
     public StandardTask getTask(Integer taskToBeDisplayedByID) {
         StandardTask task = listOfStandardTasks.get(taskToBeDisplayedByID);
-        managerForHistory.add(task);
+        if(task!=null) {
+            managerForHistory.add(task);
+        }
         return task;
     }
 
     @Override
     public SubTask getSubTask(Integer taskToBeDisplayedByID) {
         SubTask task = listOfSubtasks.get(taskToBeDisplayedByID);
-        managerForHistory.add(task);
+        if(task!=null) {
+            managerForHistory.add(task);
+        }
         return task;
     }
 
     @Override
     public Epic getEpic(Integer taskToBeDisplayedByID) {
         Epic task = listOfEpics.get(taskToBeDisplayedByID);
-        managerForHistory.add(task);
+        if(task!=null) {
+            managerForHistory.add(task);
+        }
         return task;
     }
 
@@ -154,11 +173,13 @@ public class InMemoryTaskManager implements Manager {
         ArrayList<SubTask> listOfSubtasksForEPIC = new ArrayList<>();
         ArrayList<Integer> listOfSubtasksIDs;
         Epic epicToGetList = listOfEpics.get(epicID);//Получаем данные выбранного эпика
-        listOfSubtasksIDs = epicToGetList.getListOfSubtasks();//Забираем из эпика список его сабтасков
-        if (listOfSubtasksIDs != null) {
-            for (Integer i : listOfSubtasksIDs) {//Идём по списку сабтасков выбранного эпика
-                SubTask subtaskToCheckTheirParentId = listOfSubtasks.get(i);
-                listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);//Наполняем список сабтасков
+        if(epicToGetList!=null) {
+            listOfSubtasksIDs = epicToGetList.getListOfSubtasks();//Забираем из эпика список его сабтасков
+            if (listOfSubtasksIDs != null) {
+                for (Integer i : listOfSubtasksIDs) {//Идём по списку сабтасков выбранного эпика
+                    SubTask subtaskToCheckTheirParentId = listOfSubtasks.get(i);
+                    listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);//Наполняем список сабтасков
+                }
             }
         }
         return listOfSubtasksForEPIC;
