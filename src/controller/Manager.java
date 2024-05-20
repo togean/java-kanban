@@ -35,7 +35,6 @@ public interface Manager {
 
     ArrayList<Task> getHistory();
 
-    //ArrayList<Task> getAll(String typeOfTasksToList);
     ArrayList<SubTask> getAllSubtasks();
 
     ArrayList<Epic> getAllEpics();

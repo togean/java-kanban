@@ -25,6 +25,6 @@ public class Epic extends Task {
 
     public Epic(String description, String details) {
         super(description, details);
-        listOfSubtasks.add(0);
+        //listOfSubtasks.add(0);
     }
 }

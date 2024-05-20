@@ -9,11 +9,6 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     private static final int MAX_HISTORY_TASKS = 10;
 
-
-    public InMemoryHistoryManager() {
-
-    }
-
     @Override
     public ArrayList<Task> getHistory() {
         return historyListOfTasks;
@@ -21,7 +16,7 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void add(Task task) {
-        if (historyListOfTasks.size() > MAX_HISTORY_TASKS) {
+        if (historyListOfTasks.size() == MAX_HISTORY_TASKS) {
             historyListOfTasks.remove(0);
         }
         historyListOfTasks.add(task);

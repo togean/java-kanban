@@ -18,10 +18,6 @@ public class InMemoryTaskManager implements Manager {
 
     HistoryManager managerForHistory = Managers.getDefaultHistory();
 
-    public HistoryManager getManagerForHistory() {
-        return managerForHistory;
-    }
-
     public Integer getTaskID() {
         return taskID;
     }
