@@ -68,7 +68,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public void deleteSubtask(Integer taskToBeDeleted) {
         SubTask subtaskToBeDeleted = listOfSubtasks.get(taskToBeDeleted);
-        if (subtaskToBeDeleted != null) {//Проверка, что запрошенный ID на удаление есть в списках
+        if (subtaskToBeDeleted != null) {
             Epic epicToBeUnLinkedWithDeletedSubtask = listOfEpics.get(subtaskToBeDeleted.getParentID());
             ArrayList<Integer> listOfEpicsSubtasks = epicToBeUnLinkedWithDeletedSubtask.getListOfSubtasks();
             listOfEpicsSubtasks.remove(subtaskToBeDeleted.getId());
@@ -176,13 +176,13 @@ public class InMemoryTaskManager implements Manager {
     public ArrayList<SubTask> getSubTasksOfEpic(int epicID) {
         ArrayList<SubTask> listOfSubtasksForEPIC = new ArrayList<>();
         ArrayList<Integer> listOfSubtasksIDs;
-        Epic epicToGetList = listOfEpics.get(epicID);//Получаем данные выбранного эпика
+        Epic epicToGetList = listOfEpics.get(epicID);
         if (epicToGetList != null) {
-            listOfSubtasksIDs = epicToGetList.getListOfSubtasks();//Забираем из эпика список его сабтасков
+            listOfSubtasksIDs = epicToGetList.getListOfSubtasks();
             if (listOfSubtasksIDs != null) {
-                for (Integer i : listOfSubtasksIDs) {//Идём по списку сабтасков выбранного эпика
+                for (Integer i : listOfSubtasksIDs) {
                     SubTask subtaskToCheckTheirParentId = listOfSubtasks.get(i);
-                    listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);//Наполняем список сабтасков
+                    listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);
                 }
             }
         }
@@ -222,13 +222,13 @@ public class InMemoryTaskManager implements Manager {
     }
 
     private void recalculateOrUpdateTaskStatus() {
-        for (Integer i : listOfEpics.keySet()) {//Проходим по каждому эпику
+        for (Integer i : listOfEpics.keySet()) {
             Epic currentRecalculatedEpic = listOfEpics.get(i);
             int numberOfSubtsaksInEpic = currentRecalculatedEpic.getListOfSubtasks().size();
             int numberOfNew = 0; //Кол-во подзадач статуса New
             int numberOfDone = 0; //Кол-во подзадач статуса DONE
             ArrayList<Integer> listOfEpicSubtasks = listOfEpics.get(i).getListOfSubtasks();//Тут будут ID-шники подзадач текущего эпика
-            for (int j = 1; j < numberOfSubtsaksInEpic; j++) { //В цикле читаем статусы подзадач текущей родительской задачи для расчёта статуса родительской задачи
+            for (int j = 1; j < numberOfSubtsaksInEpic; j++) {
                 SubTask currentSubtaskToCalculateStatus = listOfSubtasks.get(j);
                 if (currentSubtaskToCalculateStatus != null) {
                     if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.NEW)) {
@@ -242,10 +242,10 @@ public class InMemoryTaskManager implements Manager {
             if (numberOfNew == listOfEpicSubtasks.size() - 1) { //Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
                 currentRecalculatedEpic.setTaskStatus(TaskStatus.NEW);
                 listOfEpics.put(i, currentRecalculatedEpic);
-            } else if (numberOfDone == listOfEpicSubtasks.size() - 1) {//Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
+            } else if (numberOfDone == listOfEpicSubtasks.size() - 1) {
                 currentRecalculatedEpic.setTaskStatus(TaskStatus.DONE);
                 listOfEpics.put(i, currentRecalculatedEpic);
-            } else {//Если статус не NEW и не DONE, значит задача пока в состоянии IN_PROGRESS
+            } else {
                 currentRecalculatedEpic.setTaskStatus(TaskStatus.IN_PROGRESS);
                 listOfEpics.put(i, currentRecalculatedEpic);//Сохраняем вычисленное значение родительской задачи
             }
