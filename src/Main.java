@@ -2,7 +2,6 @@ import controller.InMemoryTaskManager;
 import controller.Managers;
 import models.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -13,38 +12,38 @@ public class Main {
 
         while (true) {
             printMenu();
-            String Description;
-            String Details;
+            String description;
+            String details;
             String taskStatus;
             int indexToManipulate;
             int parentIDForSubtask;
 
-            String Command = scanner.nextLine();
-            switch (Command) {
+            String command = scanner.nextLine();
+            switch (command) {
                 case "0":
                     System.out.println("Введите description новой задачи: ");
-                    Description = scanner.nextLine();
+                    description = scanner.nextLine();
                     System.out.println("Введите details новой задачи: ");
-                    Details = scanner.nextLine();
-                    StandardTask newStandardtask = new StandardTask(Description, Details);
+                    details = scanner.nextLine();
+                    StandardTask newStandardtask = new StandardTask(description, details);
                     managerForTasks.createTask(newStandardtask);
                     break;
                 case "1":
                     System.out.println("Введите description нового эпика: ");
-                    Description = scanner.nextLine();
+                    description = scanner.nextLine();
                     System.out.println("Введите details нового эпика: ");
-                    Details = scanner.nextLine();
-                    Epic newEpic = new Epic(Description, Details);
+                    details = scanner.nextLine();
+                    Epic newEpic = new Epic(description, details);
                     managerForTasks.createEpic(newEpic);
                     break;
                 case "2":
                     System.out.println("Введите description новой подзадачи: ");
-                    Description = scanner.nextLine();
+                    description = scanner.nextLine();
                     System.out.println("Введите details новой подзадачи: ");
-                    Details = scanner.nextLine();
+                    details = scanner.nextLine();
                     System.out.println("Введите id эпика для новой подзадачи: ");
                     parentIDForSubtask = scanner.nextInt();
-                    SubTask newSubTask = new SubTask(Description, Details, parentIDForSubtask);
+                    SubTask newSubTask = new SubTask(description, details, parentIDForSubtask);
                     managerForTasks.createSubtask(newSubTask);
                     break;
                 case "3":
@@ -69,8 +68,8 @@ public class Main {
                     Integer epicID = scanner.nextInt();
                     scanner.nextLine();
                     System.out.println("Введите новый details для эпика: ");
-                    Details = scanner.nextLine();
-                    managerForTasks.updateEpic(epicID, Details, TaskStatus.NEW);
+                    details = scanner.nextLine();
+                    managerForTasks.updateEpic(epicID, details, TaskStatus.NEW);
                     break;
                 case "5":
                     System.out.println("Введите ID обновляемой подзадачи: ");
