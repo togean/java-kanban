@@ -6,6 +6,7 @@ import models.Task;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+//проверка
 
 public class InMemoryHistoryManager implements HistoryManager {
     private final ArrayList<Task> historyArrayListOfTasks = new ArrayList<>();
