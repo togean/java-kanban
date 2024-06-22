@@ -39,8 +39,7 @@ public class InMemoryTaskManager implements Manager {
         Integer subtaskID = taskID;
         taskToBeCreated.setId(subtaskID);
         int parentID = (taskToBeCreated).getParentID();
-        if (!listOfSubtasks.containsKey(parentID)) {//Проверяем, если родителем указан не эпик а подзадача
-            //Проверяем эпик и связываем его с создаваемой подзадачей
+        if (!listOfSubtasks.containsKey(parentID)) {
             Epic epicToBeLinkedWithSubtask = listOfEpics.get(taskToBeCreated.getParentID());
             if (epicToBeLinkedWithSubtask != null) {
                 listOfSubtasks.put(subtaskID, taskToBeCreated);
