@@ -69,7 +69,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public void deleteSubtask(Integer taskToBeDeleted) {
         SubTask subtaskToBeDeleted = listOfSubtasks.get(taskToBeDeleted);
-        if(subtaskToBeDeleted!=null) {//Проверка, что запрошенный ID на удаление есть в списках
+        if (subtaskToBeDeleted != null) {//Проверка, что запрошенный ID на удаление есть в списках
             Epic epicToBeUnLinkedWithDeletedSubtask = listOfEpics.get(subtaskToBeDeleted.getParentID());
             ArrayList<Integer> listOfEpicsSubtasks = epicToBeUnLinkedWithDeletedSubtask.getListOfSubtasks();
             listOfEpicsSubtasks.remove(subtaskToBeDeleted.getId());
@@ -83,7 +83,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public void deleteTask(Integer taskToBeDeleted) {
         StandardTask standardtaskToBeDeleted = listOfStandardTasks.get(taskToBeDeleted);
-        if(standardtaskToBeDeleted!=null) {
+        if (standardtaskToBeDeleted != null) {
             listOfStandardTasks.remove(taskToBeDeleted);
             managerForHistory.remove(taskToBeDeleted);
         }
@@ -92,7 +92,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public void deleteEpic(Integer taskToBeDeleted) {
         Epic epicToBeDeleted = listOfEpics.get(taskToBeDeleted);
-        if(epicToBeDeleted!=null) {
+        if (epicToBeDeleted != null) {
             ArrayList<Integer> listOfSubtasksToBeDeleted;
             listOfSubtasksToBeDeleted = epicToBeDeleted.getListOfSubtasks();
             if (listOfSubtasksToBeDeleted != null) {
@@ -119,7 +119,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public void updateTask(Integer taskID, String taskNewDetails, TaskStatus taskNewStatus) {
         StandardTask standardtaskToBeUpdated = listOfStandardTasks.get(taskID);
-        if(standardtaskToBeUpdated!=null) {
+        if (standardtaskToBeUpdated != null) {
             standardtaskToBeUpdated.setDetails(taskNewDetails);
             standardtaskToBeUpdated.setTaskStatus(taskNewStatus);
             listOfStandardTasks.put(taskID, standardtaskToBeUpdated);
@@ -129,7 +129,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public void updateSubtask(Integer subtaskID, String subtaskNewDetails, TaskStatus subtaskNewStatus) {
         SubTask subtaskToBeUpdated = listOfSubtasks.get(subtaskID);
-        if(subtaskToBeUpdated!=null) {
+        if (subtaskToBeUpdated != null) {
             subtaskToBeUpdated.setDetails(subtaskNewDetails);
             subtaskToBeUpdated.setTaskStatus(subtaskNewStatus);
             listOfSubtasks.put(subtaskID, subtaskToBeUpdated);
@@ -140,7 +140,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public void updateEpic(Integer epicID, String epicNewDetails, TaskStatus epicNewStatus) {
         Epic epicToBeUpdated = listOfEpics.get(epicID);
-        if(epicToBeUpdated!=null) {
+        if (epicToBeUpdated != null) {
             epicToBeUpdated.setDetails(epicNewDetails);
             listOfEpics.put(epicID, epicToBeUpdated);
         }
@@ -149,7 +149,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public StandardTask getTask(Integer taskToBeDisplayedByID) {
         StandardTask task = listOfStandardTasks.get(taskToBeDisplayedByID);
-        if(task!=null) {
+        if (task != null) {
             managerForHistory.add(task);
         }
         return task;
@@ -158,7 +158,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public SubTask getSubTask(Integer taskToBeDisplayedByID) {
         SubTask task = listOfSubtasks.get(taskToBeDisplayedByID);
-        if(task!=null) {
+        if (task != null) {
             managerForHistory.add(task);
         }
         return task;
@@ -167,7 +167,7 @@ public class InMemoryTaskManager implements Manager {
     @Override
     public Epic getEpic(Integer taskToBeDisplayedByID) {
         Epic task = listOfEpics.get(taskToBeDisplayedByID);
-        if(task!=null) {
+        if (task != null) {
             managerForHistory.add(task);
         }
         return task;
@@ -178,7 +178,7 @@ public class InMemoryTaskManager implements Manager {
         ArrayList<SubTask> listOfSubtasksForEPIC = new ArrayList<>();
         ArrayList<Integer> listOfSubtasksIDs;
         Epic epicToGetList = listOfEpics.get(epicID);//Получаем данные выбранного эпика
-        if(epicToGetList!=null) {
+        if (epicToGetList != null) {
             listOfSubtasksIDs = epicToGetList.getListOfSubtasks();//Забираем из эпика список его сабтасков
             if (listOfSubtasksIDs != null) {
                 for (Integer i : listOfSubtasksIDs) {//Идём по списку сабтасков выбранного эпика
@@ -231,7 +231,7 @@ public class InMemoryTaskManager implements Manager {
             ArrayList<Integer> listOfEpicSubtasks = listOfEpics.get(i).getListOfSubtasks();//Тут будут ID-шники подзадач текущего эпика
             for (int j = 1; j < numberOfSubtsaksInEpic; j++) { //В цикле читаем статусы подзадач текущей родительской задачи для расчёта статуса родительской задачи
                 SubTask currentSubtaskToCalculateStatus = listOfSubtasks.get(j);
-                if(currentSubtaskToCalculateStatus!=null) {
+                if (currentSubtaskToCalculateStatus != null) {
                     if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.NEW)) {
                         numberOfNew++;
                     }
@@ -240,10 +240,10 @@ public class InMemoryTaskManager implements Manager {
                     }
                 }
             }
-            if (numberOfNew == listOfEpicSubtasks.size()-1) { //Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
+            if (numberOfNew == listOfEpicSubtasks.size() - 1) { //Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
                 currentRecalculatedEpic.setTaskStatus(TaskStatus.NEW);
                 listOfEpics.put(i, currentRecalculatedEpic);
-            } else if (numberOfDone == listOfEpicSubtasks.size()-1) {//Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
+            } else if (numberOfDone == listOfEpicSubtasks.size() - 1) {//Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
                 currentRecalculatedEpic.setTaskStatus(TaskStatus.DONE);
                 listOfEpics.put(i, currentRecalculatedEpic);
             } else {//Если статус не NEW и не DONE, значит задача пока в состоянии IN_PROGRESS
