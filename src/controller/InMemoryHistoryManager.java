@@ -10,7 +10,7 @@ import java.util.List;
 
 public class InMemoryHistoryManager implements HistoryManager {
     private final ArrayList<Task> historyArrayListOfTasks = new ArrayList<>();
-    private final linkedListOfTasks linkedListOfTasks = new linkedListOfTasks();
+    private final LinkedListOfTasks linkedListOfTasks = new LinkedListOfTasks();
     private final HashMap<Integer, Node<Task>> hashmapOfTasksInHistory = new HashMap<>();
 
     @Override
@@ -84,7 +84,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
     }
 
-    static class linkedListOfTasks {
+    static class LinkedListOfTasks {
         Node<Task> first;
         Node<Task> last;
     }
