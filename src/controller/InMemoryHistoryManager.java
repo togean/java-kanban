@@ -16,7 +16,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     public List<Task> getHistory() {
         historyArrayListOfTasks.clear();//Очищаем ранее существовавший список
         Node<Task> currentNode = linkedListOfTasks.first;
-        if(currentNode!=null) {
+        if (currentNode != null) {
             historyArrayListOfTasks.add(currentNode.getNodeItem());
             while (currentNode.getNexItem() != null) {
                 currentNode = currentNode.getNexItem();
@@ -28,19 +28,19 @@ public class InMemoryHistoryManager implements HistoryManager {
 
     @Override
     public void add(Task task) {
-        if(hashmapOfTasksInHistory.containsKey(task.getId())){
+        if (hashmapOfTasksInHistory.containsKey(task.getId())) {
             remove(task.getId());//Если такая задача в истории уже была, то удаляем её
         }
-        if(linkedListOfTasks.first == null){//Если в списке нет задач или была одна, но она на предыдущем шаге была удалена, т.к. ранее уже была в истории
+        if (linkedListOfTasks.first == null) {
             linkedListOfTasks.first = new Node<>(task, null, null);
             linkedListOfTasks.last = null;
             hashmapOfTasksInHistory.put(task.getId(), linkedListOfTasks.first);
-        }else{
+        } else {
 
             Node<Task> prevNode;
-            if(linkedListOfTasks.last == null) {
+            if (linkedListOfTasks.last == null) {
                 prevNode = linkedListOfTasks.first;
-            }else{
+            } else {
                 prevNode = linkedListOfTasks.last;
             }
             Node<Task> nodeToCreate = new Node<>(task, null, prevNode);
@@ -50,36 +50,38 @@ public class InMemoryHistoryManager implements HistoryManager {
             hashmapOfTasksInHistory.put(task.getId(), linkedListOfTasks.last);
         }
     }
+
     @Override
-    public void remove(int id){
-        if(hashmapOfTasksInHistory.containsKey(id)) {//Проверяем, что удаляемая задача есть в мапе
-            if(hashmapOfTasksInHistory.get(id).getNexItem()!=null&&hashmapOfTasksInHistory.get(id).getPrevItem()!=null){
+    public void remove(int id) {
+        if (hashmapOfTasksInHistory.containsKey(id)) {
+            if (hashmapOfTasksInHistory.get(id).getNexItem() != null && hashmapOfTasksInHistory.get(id).getPrevItem() != null) {
                 hashmapOfTasksInHistory.get(id).getPrevItem().setNexItem(hashmapOfTasksInHistory.get(id).getNexItem());
                 hashmapOfTasksInHistory.get(id).getNexItem().setPrevItem(hashmapOfTasksInHistory.get(id).getPrevItem());
                 hashmapOfTasksInHistory.remove(id);
                 return;
             }
-            if(hashmapOfTasksInHistory.get(id).getNexItem()==null&&hashmapOfTasksInHistory.get(id).getPrevItem()!=null){
+            if (hashmapOfTasksInHistory.get(id).getNexItem() == null && hashmapOfTasksInHistory.get(id).getPrevItem() != null) {
                 hashmapOfTasksInHistory.get(id).getPrevItem().setNexItem(null);
                 linkedListOfTasks.last = hashmapOfTasksInHistory.get(id).getPrevItem();
                 hashmapOfTasksInHistory.remove(id);
                 return;
             }
-            if(hashmapOfTasksInHistory.get(id).getNexItem()!=null&&hashmapOfTasksInHistory.get(id).getPrevItem()==null){
+            if (hashmapOfTasksInHistory.get(id).getNexItem() != null && hashmapOfTasksInHistory.get(id).getPrevItem() == null) {
                 hashmapOfTasksInHistory.get(id).getNexItem().setPrevItem(null);
                 linkedListOfTasks.first = hashmapOfTasksInHistory.get(id).getNexItem();
                 hashmapOfTasksInHistory.remove(id);
                 return;
             }
-            if(hashmapOfTasksInHistory.get(id).getNexItem()==null&&hashmapOfTasksInHistory.get(id).getPrevItem()==null){
-                linkedListOfTasks.first=null;
-                linkedListOfTasks.last=null;
+            if (hashmapOfTasksInHistory.get(id).getNexItem() == null && hashmapOfTasksInHistory.get(id).getPrevItem() == null) {
+                linkedListOfTasks.first = null;
+                linkedListOfTasks.last = null;
                 hashmapOfTasksInHistory.clear();
                 return;
             }
         }
     }
-    static class linkedListOfTasks{
+
+    static class linkedListOfTasks {
         Node<Task> first;
         Node<Task> last;
     }
