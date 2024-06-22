@@ -3,6 +3,7 @@ package controller;
 import models.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public interface Manager {
     Integer createTask(StandardTask newTask);
@@ -33,7 +34,7 @@ public interface Manager {
 
     ArrayList<SubTask> getSubTasksOfEpic(int epicID);
 
-    ArrayList<Task> getHistory();
+    List<Task> getHistory();
 
     ArrayList<SubTask> getAllSubtasks();
 

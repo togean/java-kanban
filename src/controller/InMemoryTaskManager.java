@@ -8,6 +8,7 @@ import models.StandardTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class InMemoryTaskManager implements Manager {
 
@@ -75,6 +76,7 @@ public class InMemoryTaskManager implements Manager {
             epicToBeUnLinkedWithDeletedSubtask.setListOfTasks(listOfEpicsSubtasks);
             listOfEpics.put(epicToBeUnLinkedWithDeletedSubtask.getId(), epicToBeUnLinkedWithDeletedSubtask);
             listOfSubtasks.remove(taskToBeDeleted);
+            managerForHistory.remove(taskToBeDeleted);
         }
     }
 
@@ -83,6 +85,7 @@ public class InMemoryTaskManager implements Manager {
         StandardTask standardtaskToBeDeleted = listOfStandardTasks.get(taskToBeDeleted);
         if(standardtaskToBeDeleted!=null) {
             listOfStandardTasks.remove(taskToBeDeleted);
+            managerForHistory.remove(taskToBeDeleted);
         }
     }
 
@@ -95,9 +98,11 @@ public class InMemoryTaskManager implements Manager {
             if (listOfSubtasksToBeDeleted != null) {
                 for (int i : listOfSubtasksToBeDeleted) {
                     listOfSubtasks.remove(i);
+                    managerForHistory.remove(taskToBeDeleted);
                 }
             }
             listOfEpics.remove(taskToBeDeleted);
+            managerForHistory.remove(taskToBeDeleted);
         }
     }
 
@@ -186,7 +191,7 @@ public class InMemoryTaskManager implements Manager {
     }
 
     @Override
-    public ArrayList<Task> getHistory() {
+    public List<Task> getHistory() {
         return managerForHistory.getHistory();
     }
 

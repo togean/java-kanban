@@ -3,6 +3,7 @@ import controller.Managers;
 import models.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -140,7 +141,7 @@ public class Main {
                     managerForTasks.getSubTask(taskID);
                     break;
                 case "17":
-                    ArrayList<Task> history = managerForTasks.getHistory();
+                    List<Task> history = managerForTasks.getHistory();
                     System.out.println("История: " + history);
                     break;
                 case "18":
@@ -158,7 +159,7 @@ public class Main {
         System.out.println("3. Обновить задачу");
         System.out.println("4. Обновить эпик");
         System.out.println("5. Обновить подзадачу");
-        System.out.println("------- Меню вывода задач (без истрии) ------- ");
+        System.out.println("------- Меню вывода задач (без истории) ------- ");
         System.out.println("6. Вывести все задачи");
         System.out.println("7. Вывести все эпики");
         System.out.println("8. Вывести все подзадачи");

@@ -1,24 +1,24 @@
 package models;
 
-import controller.HistoryManager;
-import controller.InMemoryTaskManager;
-import controller.Manager;
-import controller.Managers;
+import controller.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TaskTest {
     InMemoryTaskManager managerForTasks;
+    InMemoryHistoryManager managerForHistory;
 
 
     @BeforeEach
     public void BeforeEach() {
         managerForTasks = (InMemoryTaskManager) Managers.getDefault();
+        managerForHistory = (InMemoryHistoryManager) Managers.getDefaultHistory();
     }
 
     @Test
@@ -182,12 +182,38 @@ class TaskTest {
 
     @Test
     void canSaveHistory() {
-        ArrayList<Task> listOfHistory;
+        List<Task> listOfHistory;
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
         int id = managerForTasks.createTask(newStandardtask);
         managerForTasks.getTask(id);
         listOfHistory = managerForTasks.getHistory();
         assertTrue(listOfHistory.size() > 0, "задача не помещена в историю");
+    }
+    @Test
+    void compareTaskInListAndTaskInHistory() {
+        List<Task> listOfHistory;
+        boolean taskIsTheSame = false;
+        StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
+        int id = managerForTasks.createTask(newStandardtask);
+        managerForTasks.getTask(id);
+        listOfHistory = managerForTasks.getHistory();
+        for(Task task: listOfHistory){
+            taskIsTheSame = newStandardtask.getDescription().equals(task.getDescription());
+        }
+        assertTrue(taskIsTheSame, "задача в истории не соответствует созданной проверочной задачи");
+    }
+    @Test
+    void canDeleteItemInHistory() {
+        List<Task> listOfHistory;
+        int numberOfTasksInHistoryBeforeDeletion;
+        int numberOfTasksInHistoryAfterDeletion;
+        StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
+        int id = managerForTasks.createTask(newStandardtask);
+        managerForTasks.getTask(id);
+        numberOfTasksInHistoryBeforeDeletion = managerForTasks.getHistory().size();
+        managerForHistory.remove(id);
+        numberOfTasksInHistoryAfterDeletion = managerForTasks.getHistory().size();
+        assertTrue((numberOfTasksInHistoryBeforeDeletion-numberOfTasksInHistoryAfterDeletion) == 0, "задача не удалена в истории");
     }
     @Test
     void managerShouldReturnRealInstancesOfManagers(){
