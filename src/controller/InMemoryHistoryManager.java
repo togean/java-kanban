@@ -13,6 +13,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     private final HashMap<Integer, Node<Task>> hashmapOfTasksInHistory = new HashMap<>();
 
     @Override
+
     public List<Task> getHistory() {
         historyArrayListOfTasks.clear();//Очищаем ранее существовавший список
         Node<Task> currentNode = linkedListOfTasks.first;
@@ -27,6 +28,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
+
     public void add(Task task) {
         if (hashmapOfTasksInHistory.containsKey(task.getId())) {
             remove(task.getId());//Если такая задача в истории уже была, то удаляем её
@@ -52,6 +54,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     @Override
+
     public void remove(int id) {
         if (hashmapOfTasksInHistory.containsKey(id)) {
             if (hashmapOfTasksInHistory.get(id).getNexItem() != null && hashmapOfTasksInHistory.get(id).getPrevItem() != null) {
@@ -76,7 +79,6 @@ public class InMemoryHistoryManager implements HistoryManager {
                 linkedListOfTasks.first = null;
                 linkedListOfTasks.last = null;
                 hashmapOfTasksInHistory.clear();
-                return;
             }
         }
     }
