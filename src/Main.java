@@ -96,7 +96,7 @@ public class Main {
                     System.out.println("Все эпики: " + managerForSaveInFile.getAllEpics());
                     break;
                 case "8":
-                    System.out.println("Все подзадачи: " +managerForSaveInFile.getAllSubtasks());
+                    System.out.println("Все подзадачи: " + managerForSaveInFile.getAllSubtasks());
                     break;
                 case "9":
                     System.out.println("Введите ID эпика для вывода его подзадач: ");
