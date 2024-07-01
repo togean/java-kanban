@@ -1,9 +1,11 @@
 package models;
 
+import Exceptions.FileToSaveTasksNotFound;
 import controller.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,12 +15,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TaskTest {
     InMemoryTaskManager managerForTasks;
     InMemoryHistoryManager managerForHistory;
+    FileBackedTaskManager managerForBackupToFile;
 
 
     @BeforeEach
     public void BeforeEach() {
         managerForTasks = (InMemoryTaskManager) Managers.getDefault();
         managerForHistory = (InMemoryHistoryManager) Managers.getDefaultHistory();
+        managerForBackupToFile = (FileBackedTaskManager) Managers.getFileBackedTaskManager();
     }
 
     @Test
@@ -30,6 +34,15 @@ class TaskTest {
         newTask2 = managerForTasks.getTask(1);
         assertTrue(newTask1.equals(newTask2), "Таски " + newTask1 + " и " + newTask2 + " не равны друг другу");
 
+    }
+
+    @Test
+    void canSaveAndReadTaskFromFile() {
+        StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
+        managerForBackupToFile.createTask(newStandardtask);
+        managerForBackupToFile.readFromFile();
+        StandardTask loadedTask = managerForBackupToFile.getTask(1);
+        assertEquals(loadedTask.getDescription(), newStandardtask.getDescription(), "Записанный в файл таск не соответствует прочитанному из этого файла");
     }
 
     @Test
@@ -189,6 +202,7 @@ class TaskTest {
         listOfHistory = managerForTasks.getHistory();
         assertTrue(listOfHistory.size() > 0, "задача не помещена в историю");
     }
+
     @Test
     void compareTaskInListAndTaskInHistory() {
         List<Task> listOfHistory;
@@ -197,11 +211,12 @@ class TaskTest {
         int id = managerForTasks.createTask(newStandardtask);
         managerForTasks.getTask(id);
         listOfHistory = managerForTasks.getHistory();
-        for(Task task: listOfHistory){
+        for (Task task : listOfHistory) {
             taskIsTheSame = newStandardtask.getDescription().equals(task.getDescription());
         }
         assertTrue(taskIsTheSame, "задача в истории не соответствует созданной проверочной задачи");
     }
+
     @Test
     void canDeleteItemInHistory() {
         List<Task> listOfHistory;
@@ -213,10 +228,11 @@ class TaskTest {
         numberOfTasksInHistoryBeforeDeletion = managerForTasks.getHistory().size();
         managerForHistory.remove(id);
         numberOfTasksInHistoryAfterDeletion = managerForTasks.getHistory().size();
-        assertTrue((numberOfTasksInHistoryBeforeDeletion-numberOfTasksInHistoryAfterDeletion) == 0, "задача не удалена в истории");
+        assertTrue((numberOfTasksInHistoryBeforeDeletion - numberOfTasksInHistoryAfterDeletion) == 0, "задача не удалена в истории");
     }
+
     @Test
-    void managerShouldReturnRealInstancesOfManagers(){
+    void managerShouldReturnRealInstancesOfManagers() {
         Manager newManagerForTest = Managers.getDefault();
         Epic newEpic = new Epic("Epic1", "Epic1 details");
         int EpicID = newManagerForTest.createEpic(newEpic);
@@ -231,8 +247,9 @@ class TaskTest {
         newHistoryManager.add(newEpic);
         assertNotNull(newHistoryManager.getHistory(), "HistoryManager неправильно вернул getHistory");
     }
+
     @Test
-    void tryToGetSubtasksOfEpic(){
+    void tryToGetSubtasksOfEpic() {
         Epic newEpic = new Epic("Epic1", "Epic1 details");
         managerForTasks.createEpic(newEpic);
         SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1);

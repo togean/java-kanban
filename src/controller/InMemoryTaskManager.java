@@ -19,6 +19,17 @@ public class InMemoryTaskManager implements Manager {
 
     HistoryManager managerForHistory = Managers.getDefaultHistory();
 
+
+
+    public HashMap<Integer, SubTask> getListOfSubTasks(){
+        return listOfSubtasks;
+    }
+    public HashMap<Integer, Epic> getListOfEpics(){
+        return listOfEpics;
+    }
+    public HashMap<Integer, StandardTask> getListOfStandardTasks(){
+        return listOfStandardTasks;
+    }
     public Integer getTaskID() {
         return taskID;
     }
@@ -38,7 +49,7 @@ public class InMemoryTaskManager implements Manager {
         int createdTaskID = 0;
         Integer subtaskID = taskID;
         taskToBeCreated.setId(subtaskID);
-        int parentID = (taskToBeCreated).getParentID();
+        int parentID = taskToBeCreated.getParentID();
         if (!listOfSubtasks.containsKey(parentID)) {
             Epic epicToBeLinkedWithSubtask = listOfEpics.get(taskToBeCreated.getParentID());
             if (epicToBeLinkedWithSubtask != null) {
