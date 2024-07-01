@@ -21,18 +21,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try (Writer writer = new FileWriter(file, false)) {
             writer.write("id,type,name,status,description,epic\n");
             for (Task task : super.getListOfStandardTasks().values()) {
-                writer.write(task.getId() + ","+TaskTypes.TASK+"," + task.getDescription() + "," + task.getTaskStatus() + "," + task.getDetails() + ",TASK\n");
+                writer.write(task.getId() + "," + TaskTypes.TASK + "," + task.getDescription() + "," + task.getTaskStatus() + "," + task.getDetails() + ",TASK\n");
             }
             for (Epic epic : super.getListOfEpics().values()) {
-                writer.write(epic.getId() + ","+TaskTypes.EPIC+"," + epic.getDescription() + "," + epic.getTaskStatus() + "," + epic.getDetails() + ",EPIC\n");
+                writer.write(epic.getId() + "," + TaskTypes.EPIC + "," + epic.getDescription() + "," + epic.getTaskStatus() + "," + epic.getDetails() + ",EPIC\n");
             }
             for (SubTask subtask : super.getListOfSubTasks().values()) {
-                writer.write(subtask.getId() + ","+TaskTypes.SUBTASK+"," + subtask.getDescription() + "," + subtask.getTaskStatus() + "," + subtask.getDetails() + "," + subtask.getParentID() + "\n");
+                writer.write(subtask.getId() + "," + TaskTypes.SUBTASK + "," + subtask.getDescription() + "," + subtask.getTaskStatus() + "," + subtask.getDetails() + "," + subtask.getParentID() + "\n");
             }
 
         } catch (FileToSaveTasksNotFound ex) {
-            throw new RuntimeException("Файл "+this.fileName+" не найден");
-        }catch (IOException ex){
+            throw new RuntimeException("Файл " + this.fileName + " не найден");
+        } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -42,21 +42,21 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             String line = reader.readLine();
             while (line != null) {
                 String[] partsOfLine = line.split(",");
-                if(partsOfLine[1].equals("TASK")){
+                if (partsOfLine[1].equals("TASK")) {
                     StandardTask loadeStandardtask = new StandardTask(partsOfLine[2], partsOfLine[4]);
                     super.createTask(loadeStandardtask);
-                }else if(partsOfLine[1].equals("EPIC")){
+                } else if (partsOfLine[1].equals("EPIC")) {
                     Epic loadeEpic = new Epic(partsOfLine[2], partsOfLine[4]);
                     super.createEpic(loadeEpic);
-                }else if(partsOfLine[1].equals("SUBTASK")){
+                } else if (partsOfLine[1].equals("SUBTASK")) {
                     SubTask loadedSubTask = new SubTask(partsOfLine[2], partsOfLine[4], Integer.parseInt(partsOfLine[5]));
                     super.createSubtask(loadedSubTask);
                 }
                 line = reader.readLine();
             }
         } catch (FileToSaveTasksNotFound e) {
-            throw new RuntimeException("Файл "+fileName+" не найден");
-        } catch (IOException ex){
+            throw new RuntimeException("Файл " + fileName + " не найден");
+        } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
