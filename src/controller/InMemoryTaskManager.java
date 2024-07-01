@@ -20,16 +20,18 @@ public class InMemoryTaskManager implements Manager {
     HistoryManager managerForHistory = Managers.getDefaultHistory();
 
 
-
-    public HashMap<Integer, SubTask> getListOfSubTasks(){
+    public HashMap<Integer, SubTask> getListOfSubTasks() {
         return listOfSubtasks;
     }
-    public HashMap<Integer, Epic> getListOfEpics(){
+
+    public HashMap<Integer, Epic> getListOfEpics() {
         return listOfEpics;
     }
-    public HashMap<Integer, StandardTask> getListOfStandardTasks(){
+
+    public HashMap<Integer, StandardTask> getListOfStandardTasks() {
         return listOfStandardTasks;
     }
+
     public Integer getTaskID() {
         return taskID;
     }
