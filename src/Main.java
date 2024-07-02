@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         FileBackedTaskManager managerForSaveInFile = (FileBackedTaskManager) Managers.getFileBackedTaskManager();
-        managerForSaveInFile.readFromFile();
+
 
         while (true) {
             printMenu();

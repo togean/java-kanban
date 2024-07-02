@@ -37,8 +37,8 @@ class TaskTest {
     @Test
     void canSaveAndReadTaskFromFile() {
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
-        managerForBackupToFile.createTask(newStandardtask);
-        managerForBackupToFile.readFromFile();
+        managerForBackupToFile.createTask(newStandardtask);//Записываем в файл при создании таска
+        managerForBackupToFile.readFromFile();//Читаем из файла созданный ранее таск
         StandardTask loadedTask = managerForBackupToFile.getTask(1);
         assertEquals(loadedTask.getDescription(), newStandardtask.getDescription(), "Записанный в файл таск не соответствует прочитанному из этого файла");
     }

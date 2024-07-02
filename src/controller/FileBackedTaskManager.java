@@ -4,8 +4,6 @@ import exceptions.FileToSaveTasksNotFound;
 import models.*;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     String fileName;
@@ -13,9 +11,10 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public FileBackedTaskManager(String filename) {
         super();
         this.fileName = filename;
+        readFromFile();
     }
 
-    public void save() {
+    private void save() {
 
         File file = new File(this.fileName);
         try (Writer writer = new FileWriter(file, false)) {
@@ -37,7 +36,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public void readFromFile() {
+     public void readFromFile() {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line = reader.readLine();
             while (line != null) {
@@ -154,87 +153,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             managerForHistory.add(task);
         }
         return task;
-    }
-
-    @Override
-    public ArrayList<SubTask> getSubTasksOfEpic(int epicID) {
-        ArrayList<SubTask> listOfSubtasksForEPIC = new ArrayList<>();
-        ArrayList<Integer> listOfSubtasksIDs;
-        Epic epicToGetList = super.getListOfEpics().get(epicID);
-        if (epicToGetList != null) {
-            listOfSubtasksIDs = epicToGetList.getListOfSubtasks();
-            if (listOfSubtasksIDs != null) {
-                for (Integer i : listOfSubtasksIDs) {
-                    SubTask subtaskToCheckTheirParentId = super.getListOfSubTasks().get(i);
-                    listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);
-                }
-            }
-        }
-        return listOfSubtasksForEPIC;
-    }
-
-    @Override
-    public List<Task> getHistory() {
-        return managerForHistory.getHistory();
-    }
-
-    @Override
-    public ArrayList<SubTask> getAllSubtasks() {
-        ArrayList<SubTask> result = new ArrayList<>();
-        for (SubTask task : super.getListOfSubTasks().values()) {
-            result.add(task);
-        }
-        return result;
-    }
-
-    @Override
-    public ArrayList<Epic> getAllEpics() {
-        ArrayList<Epic> result = new ArrayList<>();
-        for (Epic epic : super.getListOfEpics().values()) {
-            result.add(epic);
-        }
-        return result;
-    }
-
-    @Override
-    public ArrayList<Task> getAllTasks() {
-        ArrayList<Task> result = new ArrayList<>();
-        for (Task task : super.getListOfStandardTasks().values()) {
-            result.add(task);
-        }
-        return result;
-    }
-
-
-    private void recalculateOrUpdateTaskStatus() {
-        for (Integer i : super.getListOfEpics().keySet()) {
-            Epic currentRecalculatedEpic = super.getListOfEpics().get(i);
-            int numberOfSubtsaksInEpic = currentRecalculatedEpic.getListOfSubtasks().size();
-            int numberOfNew = 0; //Кол-во подзадач статуса New
-            int numberOfDone = 0; //Кол-во подзадач статуса DONE
-            ArrayList<Integer> listOfEpicSubtasks = super.getListOfEpics().get(i).getListOfSubtasks();//Тут будут ID-шники подзадач текущего эпика
-            for (int j = 1; j < numberOfSubtsaksInEpic; j++) {
-                SubTask currentSubtaskToCalculateStatus = super.getListOfSubTasks().get(j);
-                if (currentSubtaskToCalculateStatus != null) {
-                    if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.NEW)) {
-                        numberOfNew++;
-                    }
-                    if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.DONE)) {
-                        numberOfDone++;
-                    }
-                }
-            }
-            if (numberOfNew == listOfEpicSubtasks.size() - 1) { //Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
-                currentRecalculatedEpic.setTaskStatus(TaskStatus.NEW);
-                super.getListOfEpics().put(i, currentRecalculatedEpic);
-            } else if (numberOfDone == listOfEpicSubtasks.size() - 1) {
-                currentRecalculatedEpic.setTaskStatus(TaskStatus.DONE);
-                super.getListOfEpics().put(i, currentRecalculatedEpic);
-            } else {
-                currentRecalculatedEpic.setTaskStatus(TaskStatus.IN_PROGRESS);
-                super.getListOfEpics().put(i, currentRecalculatedEpic);//Сохраняем вычисленное значение родительской задачи
-            }
-        }
     }
 
 }
