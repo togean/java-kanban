@@ -39,6 +39,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
      public void readFromFile() {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line = reader.readLine();
+            line = reader.readLine();
             while (line != null) {
                 String[] partsOfLine = line.split(",");
                 if (partsOfLine[1].equals("TASK")) {
