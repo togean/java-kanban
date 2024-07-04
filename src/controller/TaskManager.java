@@ -5,7 +5,7 @@ import models.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface Manager {
+public interface TaskManager {
     Integer createTask(StandardTask newTask);
 
     Integer createEpic(Epic newTask);

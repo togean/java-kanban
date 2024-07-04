@@ -11,12 +11,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public FileBackedTaskManager(String filename) {
         super();
         this.fileName = filename;
-        readFromFile();
+        readFromFile(filename);
     }
 
-    private void save() {
+    private void save(String filename) {
 
-        File file = new File(this.fileName);
+        File file = new File(filename);
         try (Writer writer = new FileWriter(file, false)) {
             writer.write("id,type,name,status,description,epic\n");
             for (Task task : super.getListOfStandardTasks().values()) {
@@ -36,9 +36,35 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-     public void readFromFile() {
+     private void readFromFile(String fileName) {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line = reader.readLine();
+            String line;
+            line = reader.readLine();
+            String[] partsOfLine;
+            while (line != null) {
+                partsOfLine = line.split(",");
+                if (partsOfLine[1].equals("TASK")) {
+                    StandardTask loadeStandardtask = new StandardTask(partsOfLine[2], partsOfLine[4]);
+                    super.createTask(loadeStandardtask);
+                } else if (partsOfLine[1].equals("EPIC")) {
+                    Epic loadeEpic = new Epic(partsOfLine[2], partsOfLine[4]);
+                    super.createEpic(loadeEpic);
+                } else if (partsOfLine[1].equals("SUBTASK")) {
+                    SubTask loadedSubTask = new SubTask(partsOfLine[2], partsOfLine[4], Integer.parseInt(partsOfLine[5]));
+                    super.createSubtask(loadedSubTask);
+                }
+                line = reader.readLine();
+            }
+        } catch (FileToSaveTasksNotFound e) {
+            throw new RuntimeException("Файл " + fileName + " не найден");
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public void loadFromFile(String fileName){
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
             line = reader.readLine();
             while (line != null) {
                 String[] partsOfLine = line.split(",");
@@ -64,40 +90,40 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     @Override
     public Integer createTask(StandardTask taskToBeCreated) {
         int createdTaskID = super.createTask(taskToBeCreated);
-        save();
+        save(fileName);
         return createdTaskID;
     }
 
     @Override
     public Integer createSubtask(SubTask taskToBeCreated) {
         int createdTaskID = super.createSubtask(taskToBeCreated);
-        save();
+        save(fileName);
         return createdTaskID;
     }
 
     @Override
     public Integer createEpic(Epic taskToBeCreated) {
         int createdTaskID = super.createEpic(taskToBeCreated);
-        save();
+        save(fileName);
         return createdTaskID;
     }
 
     @Override
     public void deleteSubtask(Integer taskToBeDeleted) {
         super.deleteSubtask(taskToBeDeleted);
-        save();
+        save(fileName);
     }
 
     @Override
     public void deleteTask(Integer taskToBeDeleted) {
         super.deleteTask(taskToBeDeleted);
-        save();
+        save(fileName);
     }
 
     @Override
     public void deleteEpic(Integer taskToBeDeleted) {
         super.deleteEpic(taskToBeDeleted);
-        save();
+        save(fileName);
     }
 
     @Override
@@ -108,25 +134,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         for (int i = 0; i < super.getListOfStandardTasks().size(); i++) {
             deleteTask(i);
         }
-        save();
+        save(fileName);
     }
 
     @Override
     public void updateTask(Integer taskID, String taskNewDetails, TaskStatus taskNewStatus) {
         super.updateTask(taskID, taskNewDetails, taskNewStatus);
-        save();
+        save(fileName);
     }
 
     @Override
     public void updateSubtask(Integer subtaskID, String subtaskNewDetails, TaskStatus subtaskNewStatus) {
         super.updateSubtask(subtaskID, subtaskNewDetails, subtaskNewStatus);
-        save();
+        save(fileName);
     }
 
     @Override
     public void updateEpic(Integer epicID, String epicNewDetails, TaskStatus epicNewStatus) {
         super.updateSubtask(epicID, epicNewDetails, epicNewStatus);
-        save();
+        save(fileName);
     }
 
     @Override

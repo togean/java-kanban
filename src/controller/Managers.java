@@ -1,7 +1,10 @@
 package controller;
 
 public class Managers {
-    public static Manager getDefault() {
+    public static TaskManager getDefault(String methodType, String filename) {
+        if(methodType.equals("InFile")) {
+            return new FileBackedTaskManager(filename);
+        }
         return new InMemoryTaskManager();
     }
 
@@ -9,7 +12,4 @@ public class Managers {
         return new InMemoryHistoryManager();
     }
 
-      public static Manager getFileBackedTaskManager() {
-        return new FileBackedTaskManager("tasks.csv");
-    }
 }
