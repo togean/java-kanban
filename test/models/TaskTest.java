@@ -42,7 +42,8 @@ class TaskTest {
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
         managerForTasksInFile =  Managers.getDefault( "test.txt");
         managerForTasksInFile.createTask(newStandardtask);//Создаём вторым менеджером таск с записью в тестовый файл
-        //loadFromFile("test.txt");//Читаем из файла
+        TaskManager managerForTasksInFile2 = Managers.getDefault( "test.txt");
+
         //StandardTask loadedTask = managerForTasksInFile.getListOfStandardTasks().get(1);
         //assertEquals(loadedTask.getDescription(), firstCreatedTask.getDescription(), "Записанный в файл таск не соответствует прочитанному из этого файла");
     }
