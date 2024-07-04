@@ -29,8 +29,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 writer.write(subtask.getId() + "," + TaskTypes.SUBTASK + "," + subtask.getDescription() + "," + subtask.getTaskStatus() + "," + subtask.getDetails() + "," + subtask.getParentID() + "\n");
             }
 
-        } catch (FileToSaveTasksNotFound ex) {
-            throw new RuntimeException("Файл " + this.fileName + " не найден");
+        } catch (FileNotFoundException ex) {
+            throw new FileToSaveTasksNotFound("Файл " + this.fileName + " не найден");
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -55,8 +55,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
                 line = reader.readLine();
             }
-        } catch (FileToSaveTasksNotFound e) {
-            throw new RuntimeException("Файл " + fileName + " не найден");
+        } catch (FileNotFoundException e) {
+            throw new FileToSaveTasksNotFound("Файл " + fileName + " не найден");
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -80,8 +80,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
                 line = reader.readLine();
             }
-        } catch (FileToSaveTasksNotFound e) {
-            throw new RuntimeException("Файл " + fileName + " не найден");
+        } catch (FileNotFoundException e) {
+            throw new FileToSaveTasksNotFound("Файл " + fileName + " не найден");
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
