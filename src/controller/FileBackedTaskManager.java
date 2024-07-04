@@ -11,7 +11,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     public FileBackedTaskManager(String filename) {
         super();
         this.fileName = filename;
-        readFromFile(filename);
     }
 
     private void save(String filename) {
@@ -19,69 +18,18 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         File file = new File(filename);
         try (Writer writer = new FileWriter(file, false)) {
             writer.write("id,type,name,status,description,epic\n");
-            for (Task task : super.getListOfStandardTasks().values()) {
+            for (Task task : super.getListOfStandardTasks()) {
                 writer.write(task.getId() + "," + TaskTypes.TASK + "," + task.getDescription() + "," + task.getTaskStatus() + "," + task.getDetails() + ",TASK\n");
             }
-            for (Epic epic : super.getListOfEpics().values()) {
+            for (Epic epic : super.getListOfEpics()) {
                 writer.write(epic.getId() + "," + TaskTypes.EPIC + "," + epic.getDescription() + "," + epic.getTaskStatus() + "," + epic.getDetails() + ",EPIC\n");
             }
-            for (SubTask subtask : super.getListOfSubTasks().values()) {
+            for (SubTask subtask : super.getListOfSubTasks()) {
                 writer.write(subtask.getId() + "," + TaskTypes.SUBTASK + "," + subtask.getDescription() + "," + subtask.getTaskStatus() + "," + subtask.getDetails() + "," + subtask.getParentID() + "\n");
             }
 
         } catch (FileNotFoundException ex) {
             throw new FileToSaveTasksNotFound("Файл " + this.fileName + " не найден");
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    private void readFromFile(String fileName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            line = reader.readLine();
-            String[] partsOfLine;
-            while (line != null) {
-                partsOfLine = line.split(",");
-                if (partsOfLine[1].equals("TASK")) {
-                    StandardTask loadeStandardtask = new StandardTask(partsOfLine[2], partsOfLine[4]);
-                    super.createTask(loadeStandardtask);
-                } else if (partsOfLine[1].equals("EPIC")) {
-                    Epic loadeEpic = new Epic(partsOfLine[2], partsOfLine[4]);
-                    super.createEpic(loadeEpic);
-                } else if (partsOfLine[1].equals("SUBTASK")) {
-                    SubTask loadedSubTask = new SubTask(partsOfLine[2], partsOfLine[4], Integer.parseInt(partsOfLine[5]));
-                    super.createSubtask(loadedSubTask);
-                }
-                line = reader.readLine();
-            }
-        } catch (FileNotFoundException e) {
-            throw new FileToSaveTasksNotFound("Файл " + fileName + " не найден");
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    public void loadFromFile(String fileName) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            line = reader.readLine();
-            while (line != null) {
-                String[] partsOfLine = line.split(",");
-                if (partsOfLine[1].equals("TASK")) {
-                    StandardTask loadeStandardtask = new StandardTask(partsOfLine[2], partsOfLine[4]);
-                    super.createTask(loadeStandardtask);
-                } else if (partsOfLine[1].equals("EPIC")) {
-                    Epic loadeEpic = new Epic(partsOfLine[2], partsOfLine[4]);
-                    super.createEpic(loadeEpic);
-                } else if (partsOfLine[1].equals("SUBTASK")) {
-                    SubTask loadedSubTask = new SubTask(partsOfLine[2], partsOfLine[4], Integer.parseInt(partsOfLine[5]));
-                    super.createSubtask(loadedSubTask);
-                }
-                line = reader.readLine();
-            }
-        } catch (FileNotFoundException e) {
-            throw new FileToSaveTasksNotFound("Файл " + fileName + " не найден");
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

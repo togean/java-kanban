@@ -28,6 +28,8 @@ public interface TaskManager {
 
     StandardTask getTask(Integer taskToBeDisplayedByID);
 
+    Integer getTaskID();
+
     Epic getEpic(Integer taskToBeDisplayedByID);
 
     void deleteAll();

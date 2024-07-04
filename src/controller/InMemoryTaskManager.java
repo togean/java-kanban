@@ -9,6 +9,7 @@ import models.StandardTask;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -19,17 +20,16 @@ public class InMemoryTaskManager implements TaskManager {
 
     HistoryManager managerForHistory = Managers.getDefaultHistory();
 
-
-    public HashMap<Integer, SubTask> getListOfSubTasks() {
-        return listOfSubtasks;
+    public List<SubTask> getListOfSubTasks() {
+        return new ArrayList<SubTask>(listOfSubtasks.values());
     }
 
-    public HashMap<Integer, Epic> getListOfEpics() {
-        return listOfEpics;
+    public List<Epic> getListOfEpics() {
+        return new ArrayList<Epic>(listOfEpics.values());
     }
 
-    public HashMap<Integer, StandardTask> getListOfStandardTasks() {
-        return listOfStandardTasks;
+    public List<StandardTask> getListOfStandardTasks() {
+        return new ArrayList<StandardTask>(listOfStandardTasks.values());
     }
 
     public Integer getTaskID() {
