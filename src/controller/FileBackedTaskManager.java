@@ -36,7 +36,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-     private void readFromFile(String fileName) {
+    private void readFromFile(String fileName) {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
             line = reader.readLine();
@@ -62,7 +62,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public void loadFromFile(String fileName){
+    public void loadFromFile(String fileName) {
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
             line = reader.readLine();
