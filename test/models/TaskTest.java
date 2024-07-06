@@ -38,8 +38,7 @@ class TaskTest {
         TaskManager taskManager1 = Managers.getDefault("test.txt");//Создаём менеджер через конструктор
         taskManager1.createTask(newStandardtask);//Создаём вторым менеджером таск с записью в тестовый файл
 
-        FileBackedTaskManager taskManager2 = new FileBackedTaskManager("test.txt");//Создаём менеджер через
-        taskManager2 = taskManager2.loadFromFile();
+        FileBackedTaskManager taskManager2 = FileBackedTaskManager.loadFromFile("test.txt");
         StandardTask task1 = taskManager1.getTask(1);
         StandardTask task2 = taskManager2.getTask(1);
 
@@ -65,6 +64,7 @@ class TaskTest {
         newEpic2 = managerForInMemoryTasks.getEpic(1);
         assertTrue(newEpic1.equals(newEpic2), "Таски " + newEpic1 + " и " + newEpic2 + " не равны друг другу");
     }
+
 
     @Test
     void twoInstancesOfSubTasksIsEqualsIfItHasSameID() {
@@ -250,7 +250,7 @@ class TaskTest {
     }
 
     @Test
-    void tryToGetSubtasksOfEpic() {
+    void managerShouldReturnSubtasksOfEpic() {
         Epic newEpic = new Epic("Epic1", "Epic1 details");
         managerForInMemoryTasks.createEpic(newEpic);
         SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1);

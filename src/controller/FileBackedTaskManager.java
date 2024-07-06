@@ -35,7 +35,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public static FileBackedTaskManager loadFromFile() {
+    public static FileBackedTaskManager loadFromFile(String fileName) {
         FileBackedTaskManager manager = new FileBackedTaskManager(fileName);
         try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
             String line;
@@ -52,7 +52,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return manager;
     }
 
-    public void createTaskFromString(String line) {
+    private void createTaskFromString(String line) {
         String[] partsOfLine = line.split(",");
         if (partsOfLine[1].equals("TASK")) {
             StandardTask loadeStandardtask = new StandardTask(partsOfLine[2], partsOfLine[4]);

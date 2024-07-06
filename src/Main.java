@@ -7,9 +7,9 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
-        FileBackedTaskManager tasksManager = new FileBackedTaskManager("tasks.csv");
-        tasksManager = tasksManager.loadFromFile();
-
+        //FileBackedTaskManager tasksManager = new FileBackedTaskManager("tasks.csv");
+        //tasksManager = tasksManager.loadFromFile("tasks.csv");
+        FileBackedTaskManager tasksManager = FileBackedTaskManager.loadFromFile("tasks.csv");
 
         while (true) {
             printMenu();
