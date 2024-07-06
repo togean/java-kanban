@@ -6,7 +6,7 @@ import models.*;
 import java.io.*;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
-    String fileName;
+    static String fileName;
 
     public FileBackedTaskManager(String filename) {
         super();
@@ -32,6 +32,37 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             throw new FileToSaveTasksNotFound("Файл " + this.fileName + " не найден");
         } catch (IOException ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    public static FileBackedTaskManager loadFromFile() {
+        FileBackedTaskManager manager = new FileBackedTaskManager(fileName);
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            line = reader.readLine();
+            while (line != null) {
+                manager.createTaskFromString(line);
+                line = reader.readLine();
+            }
+        } catch (FileNotFoundException e) {
+            throw new FileToSaveTasksNotFound("Файл " + fileName + " не найден");
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+        return manager;
+    }
+
+    public void createTaskFromString(String line) {
+        String[] partsOfLine = line.split(",");
+        if (partsOfLine[1].equals("TASK")) {
+            StandardTask loadeStandardtask = new StandardTask(partsOfLine[2], partsOfLine[4]);
+            super.createTask(loadeStandardtask);
+        } else if (partsOfLine[1].equals("EPIC")) {
+            Epic loadeEpic = new Epic(partsOfLine[2], partsOfLine[4]);
+            super.createEpic(loadeEpic);
+        } else if (partsOfLine[1].equals("SUBTASK")) {
+            SubTask loadedSubTask = new SubTask(partsOfLine[2], partsOfLine[4], Integer.parseInt(partsOfLine[5]));
+            super.createSubtask(loadedSubTask);
         }
     }
 
@@ -105,7 +136,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public StandardTask getTask(Integer taskToBeDisplayedByID) {
-        StandardTask task = super.getListOfStandardTasks().get(taskToBeDisplayedByID);
+        StandardTask task = super.getTask(taskToBeDisplayedByID);
         if (task != null) {
             managerForHistory.add(task);
         }
@@ -114,7 +145,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public SubTask getSubTask(Integer taskToBeDisplayedByID) {
-        SubTask task = super.getListOfSubTasks().get(taskToBeDisplayedByID);
+        SubTask task = super.getSubTask(taskToBeDisplayedByID);
         if (task != null) {
             managerForHistory.add(task);
         }
@@ -123,7 +154,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public Epic getEpic(Integer taskToBeDisplayedByID) {
-        Epic task = super.getListOfEpics().get(taskToBeDisplayedByID);
+        Epic task = super.getEpic(taskToBeDisplayedByID);
         if (task != null) {
             managerForHistory.add(task);
         }

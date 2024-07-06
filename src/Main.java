@@ -1,19 +1,15 @@
-import controller.Managers;
-import controller.TaskManager;
-import exceptions.FileToSaveTasksNotFound;
+import controller.FileBackedTaskManager;
 import models.*;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        TaskManager tasksManager = loadFromFile("tasks.csv");
+
+        FileBackedTaskManager tasksManager = new FileBackedTaskManager("tasks.csv");
+        tasksManager = tasksManager.loadFromFile();
+
 
         while (true) {
             printMenu();
@@ -182,32 +178,4 @@ public class Main {
         System.out.println("18. Выход");
     }
 
-    public static TaskManager loadFromFile(String fileName) {
-        TaskManager inFileTaskManager = Managers.getDefault("tasks.csv");
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
-            String line;
-            line = reader.readLine();
-            while (line != null) {
-                String[] partsOfLine = line.split(",");
-                if (partsOfLine[1].equals("TASK")) {
-                    StandardTask loadeStandardtask = new StandardTask(partsOfLine[2], partsOfLine[4]);
-                    inFileTaskManager.createTask(loadeStandardtask);
-                } else if (partsOfLine[1].equals("EPIC")) {
-                    Epic loadeEpic = new Epic(partsOfLine[2], partsOfLine[4]);
-                    inFileTaskManager.createEpic(loadeEpic);
-                } else if (partsOfLine[1].equals("SUBTASK")) {
-                    SubTask loadedSubTask = new SubTask(partsOfLine[2], partsOfLine[4], Integer.parseInt(partsOfLine[5]));
-                    inFileTaskManager.createSubtask(loadedSubTask);
-                }
-                line = reader.readLine();
-            }
-        } catch (FileNotFoundException e) {
-            throw new FileToSaveTasksNotFound("Файл " + fileName + " не найден");
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
-
-        return inFileTaskManager;
-    }
 }

@@ -20,15 +20,15 @@ public class InMemoryTaskManager implements TaskManager {
     HistoryManager managerForHistory = Managers.getDefaultHistory();
 
     public List<SubTask> getListOfSubTasks() {
-        return new ArrayList<SubTask>(listOfSubtasks.values());
+        return new ArrayList<>(listOfSubtasks.values());
     }
 
     public List<Epic> getListOfEpics() {
-        return new ArrayList<Epic>(listOfEpics.values());
+        return new ArrayList<>(listOfEpics.values());
     }
 
     public List<StandardTask> getListOfStandardTasks() {
-        return new ArrayList<StandardTask>(listOfStandardTasks.values());
+        return new ArrayList<>(listOfStandardTasks.values());
     }
 
     public Integer getTaskID() {

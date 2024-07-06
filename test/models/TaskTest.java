@@ -4,7 +4,6 @@ import controller.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,18 +11,14 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TaskTest {
-    //InMemoryTaskManager managerForInMemoryTasks;
     InMemoryHistoryManager managerForHistory;
-    //FileBackedTaskManager managerForTasksInFile;
     TaskManager managerForInMemoryTasks;
-    TaskManager managerForTasksInFile;
-    File file = new File("test.txt");
+
 
     @BeforeEach
     public void BeforeEach() {
-        managerForInMemoryTasks =  Managers.getDefault( null);
+        managerForInMemoryTasks = Managers.getDefault(null);
         managerForHistory = (InMemoryHistoryManager) Managers.getDefaultHistory();
-
     }
 
     @Test
@@ -40,12 +35,15 @@ class TaskTest {
     @Test
     void canSaveAndReadTaskFromFile() {
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details");
-        managerForTasksInFile =  Managers.getDefault( "test.txt");
-        managerForTasksInFile.createTask(newStandardtask);//Создаём вторым менеджером таск с записью в тестовый файл
-        TaskManager managerForTasksInFile2 = Managers.getDefault( "test.txt");
+        TaskManager taskManager1 = Managers.getDefault("test.txt");//Создаём менеджер через конструктор
+        taskManager1.createTask(newStandardtask);//Создаём вторым менеджером таск с записью в тестовый файл
 
-        //StandardTask loadedTask = managerForTasksInFile.getListOfStandardTasks().get(1);
-        //assertEquals(loadedTask.getDescription(), firstCreatedTask.getDescription(), "Записанный в файл таск не соответствует прочитанному из этого файла");
+        FileBackedTaskManager taskManager2 = new FileBackedTaskManager("test.txt");//Создаём менеджер через
+        taskManager2 = taskManager2.loadFromFile();
+        StandardTask task1 = taskManager1.getTask(1);
+        StandardTask task2 = taskManager2.getTask(1);
+
+        assertEquals(task2.getDescription(), task1.getDescription(), "Записанный в файл таск не соответствует прочитанному из этого файла");
     }
 
     @Test
@@ -236,7 +234,7 @@ class TaskTest {
 
     @Test
     void managerShouldReturnRealInstancesOfManagers() {
-        TaskManager newTaskManagerForTest = Managers.getDefault( null);
+        TaskManager newTaskManagerForTest = Managers.getDefault(null);
         Epic newEpic = new Epic("Epic1", "Epic1 details");
         int EpicID = newTaskManagerForTest.createEpic(newEpic);
         assertNotNull(EpicID, "Новый taskMeneger неправильно реализовал эпик");
