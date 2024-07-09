@@ -5,7 +5,7 @@ import models.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface Manager {
+public interface TaskManager {
     Integer createTask(StandardTask newTask);
 
     Integer createEpic(Epic newTask);
@@ -27,6 +27,8 @@ public interface Manager {
     SubTask getSubTask(Integer taskToBeDisplayedByID);
 
     StandardTask getTask(Integer taskToBeDisplayedByID);
+
+    Integer getTaskID();
 
     Epic getEpic(Integer taskToBeDisplayedByID);
 

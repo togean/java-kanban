@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class InMemoryTaskManager implements Manager {
+public class InMemoryTaskManager implements TaskManager {
 
     private final HashMap<Integer, StandardTask> listOfStandardTasks = new HashMap<>();
     private final HashMap<Integer, SubTask> listOfSubtasks = new HashMap<>();
@@ -18,6 +18,18 @@ public class InMemoryTaskManager implements Manager {
     private Integer taskID = 1;
 
     HistoryManager managerForHistory = Managers.getDefaultHistory();
+
+    public List<SubTask> getListOfSubTasks() {
+        return new ArrayList<>(listOfSubtasks.values());
+    }
+
+    public List<Epic> getListOfEpics() {
+        return new ArrayList<>(listOfEpics.values());
+    }
+
+    public List<StandardTask> getListOfStandardTasks() {
+        return new ArrayList<>(listOfStandardTasks.values());
+    }
 
     public Integer getTaskID() {
         return taskID;
@@ -38,7 +50,7 @@ public class InMemoryTaskManager implements Manager {
         int createdTaskID = 0;
         Integer subtaskID = taskID;
         taskToBeCreated.setId(subtaskID);
-        int parentID = (taskToBeCreated).getParentID();
+        int parentID = taskToBeCreated.getParentID();
         if (!listOfSubtasks.containsKey(parentID)) {
             Epic epicToBeLinkedWithSubtask = listOfEpics.get(taskToBeCreated.getParentID());
             if (epicToBeLinkedWithSubtask != null) {
