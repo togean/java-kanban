@@ -1,5 +1,9 @@
 import controller.FileBackedTaskManager;
 import models.*;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
 
@@ -14,8 +18,12 @@ public class Main {
             String description;
             String details;
             String taskStatus;
+            String inputDateTime;
+            LocalDateTime taskStartDate;
+            Duration taskDuration;
             int indexToManipulate;
             int parentIDForSubtask;
+            DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
             String command = scanner.nextLine();
             switch (command) {
@@ -24,7 +32,12 @@ public class Main {
                     description = scanner.nextLine();
                     System.out.println("Введите details новой задачи: ");
                     details = scanner.nextLine();
-                    StandardTask newStandardtask = new StandardTask(description, details);
+                    System.out.println("Введите время старта новой задачи (HH:mm dd.MM.yy): ");
+                    inputDateTime = scanner.nextLine();
+                    taskStartDate = LocalDateTime.parse(inputDateTime, DATE_TIME_FORMATTER);
+                    System.out.println("Введите длительность новой задачи (в минутах): ");
+                    taskDuration = Duration.ofMinutes(scanner.nextInt());
+                    StandardTask newStandardtask = new StandardTask(description, details, taskStartDate, taskDuration);
                     tasksManager.createTask(newStandardtask);
                     break;
                 case "1":
@@ -32,7 +45,9 @@ public class Main {
                     description = scanner.nextLine();
                     System.out.println("Введите details нового эпика: ");
                     details = scanner.nextLine();
-                    Epic newEpic = new Epic(description, details);
+                    taskStartDate = LocalDateTime.now();
+                    taskDuration = Duration.ofMinutes(1);
+                    Epic newEpic = new Epic(description, details, taskStartDate, taskDuration);
                     tasksManager.createEpic(newEpic);
                     break;
                 case "2":
@@ -42,7 +57,13 @@ public class Main {
                     details = scanner.nextLine();
                     System.out.println("Введите id эпика для новой подзадачи: ");
                     parentIDForSubtask = scanner.nextInt();
-                    SubTask newSubTask = new SubTask(description, details, parentIDForSubtask);
+                    scanner.nextLine();
+                    System.out.println("Введите дату старта новой подзадачи (HH:mm dd.MM.yy): ");
+                    inputDateTime = scanner.nextLine();
+                    taskStartDate = LocalDateTime.parse(inputDateTime, DATE_TIME_FORMATTER);
+                    System.out.println("Введите длительность новой подзадачи (в минутах): ");
+                    taskDuration = Duration.ofMinutes(scanner.nextInt());
+                    SubTask newSubTask = new SubTask(description, details, parentIDForSubtask, taskStartDate, taskDuration);
                     tasksManager.createSubtask(newSubTask);
                     break;
                 case "3":
@@ -143,6 +164,9 @@ public class Main {
                     System.out.println("История: " + history);
                     break;
                 case "18":
+                    System.out.println("Список задач в порядке приоритета: " + tasksManager.getPrioritizedTasks());
+                    break;
+                case "19":
                     return;
             }
         }
@@ -172,8 +196,10 @@ public class Main {
         System.out.println("15. Запросить эпик по ID ");
         System.out.println("16. Запросить подзадачу по ID ");
         System.out.println("17. Запросить историю обращений к задачам");
+        System.out.println("------- Меню вывода задач в порядке приоритета ------- ");
+        System.out.println("18. Вывести все задачи в порядке приоритета по дате");
         System.out.println("------- Меню завершения работы ------- ");
-        System.out.println("18. Выход");
+        System.out.println("19. Выход");
     }
 
 }

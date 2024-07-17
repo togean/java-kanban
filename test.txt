@@ -1,1 +1,2 @@
-id,type,name,status,description,epic
+id,type,name,status,description,epic,start,duration
+1,TASK,StandardTask1,NEW,StandardTask1 details,TASK,2024-07-20T10:00,PT5M

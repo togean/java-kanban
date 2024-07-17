@@ -6,9 +6,10 @@ import models.Task;
 import models.TaskStatus;
 import models.StandardTask;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -18,6 +19,17 @@ public class InMemoryTaskManager implements TaskManager {
     private Integer taskID = 1;
 
     HistoryManager managerForHistory = Managers.getDefaultHistory();
+
+    taskComparator taskComporator = new taskComparator();//Компоратор для сравнения задачек по времени их начала
+    private final TreeSet<Task> sortedListOfTasksByDateTime = new TreeSet<>(taskComporator);//Создаём сортированный список всех задачек
+
+    public TreeSet<Task> getPrioritizedTasks(){
+        sortedListOfTasksByDateTime.clear();//Что бы небыло дубляжа при создании отсортированного списка, очищаем старое наполнение
+        sortedListOfTasksByDateTime.addAll(listOfStandardTasks.values());
+        sortedListOfTasksByDateTime.addAll(listOfSubtasks.values());
+        sortedListOfTasksByDateTime.addAll(listOfEpics.values());
+        return this.sortedListOfTasksByDateTime;
+    }
 
     public List<SubTask> getListOfSubTasks() {
         return new ArrayList<>(listOfSubtasks.values());
@@ -37,43 +49,55 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Integer createTask(StandardTask taskToBeCreated) {
-        int createdTaskID;
-        taskToBeCreated.setId(taskID);
-        listOfStandardTasks.put(taskID, taskToBeCreated);
-        createdTaskID = taskID;
-        taskID++;
+        int createdTaskID = 0;
+        if(!checkTasksOverlapping(taskToBeCreated)) {
+            taskToBeCreated.setId(taskID);
+            listOfStandardTasks.put(taskID, taskToBeCreated);
+            createdTaskID = taskID;
+            taskID++;
+        }else{
+            System.out.println("Обнаружено пересечение с другой задачей");
+        }
         return createdTaskID;
     }
 
     @Override
     public Integer createSubtask(SubTask taskToBeCreated) {
         int createdTaskID = 0;
-        Integer subtaskID = taskID;
-        taskToBeCreated.setId(subtaskID);
-        int parentID = taskToBeCreated.getParentID();
-        if (!listOfSubtasks.containsKey(parentID)) {
-            Epic epicToBeLinkedWithSubtask = listOfEpics.get(taskToBeCreated.getParentID());
-            if (epicToBeLinkedWithSubtask != null) {
-                listOfSubtasks.put(subtaskID, taskToBeCreated);
-                ArrayList<Integer> listOfEpicsSubtasksToBeUpdated = epicToBeLinkedWithSubtask.getListOfSubtasks();
-                listOfEpicsSubtasksToBeUpdated.add(subtaskID);
-                epicToBeLinkedWithSubtask.setListOfTasks(listOfEpicsSubtasksToBeUpdated);
-                listOfEpics.put(taskToBeCreated.getParentID(), epicToBeLinkedWithSubtask);
-                createdTaskID = taskID;
-                taskID++;
+        if(!checkTasksOverlapping(taskToBeCreated)) {
+            Integer subtaskID = taskID;
+            taskToBeCreated.setId(subtaskID);
+            int parentID = taskToBeCreated.getParentID();
+            if (!listOfSubtasks.containsKey(parentID)) {
+                Epic epicToBeLinkedWithSubtask = listOfEpics.get(taskToBeCreated.getParentID());
+                if (epicToBeLinkedWithSubtask != null) {
+                    listOfSubtasks.put(subtaskID, taskToBeCreated);
+                    ArrayList<Integer> listOfEpicsSubtasksToBeUpdated = epicToBeLinkedWithSubtask.getListOfSubtasks();
+                    listOfEpicsSubtasksToBeUpdated.add(subtaskID);
+                    epicToBeLinkedWithSubtask.setListOfTasks(listOfEpicsSubtasksToBeUpdated);
+                    listOfEpics.put(taskToBeCreated.getParentID(), epicToBeLinkedWithSubtask);
+                    createdTaskID = taskID;
+                    taskID++;
+                }
+                recalculateOrUpdateTaskStatus();
             }
-            recalculateOrUpdateTaskStatus();
+        }else{
+            System.out.println("Обнаружено пересечение с другой задачей");
         }
         return createdTaskID;
     }
 
     @Override
     public Integer createEpic(Epic taskToBeCreated) {
-        int createdTaskID;
-        taskToBeCreated.setId(taskID);
-        listOfEpics.put(taskID, taskToBeCreated);
-        createdTaskID = taskID;
-        taskID++;
+        int createdTaskID =0;
+        if(!checkTasksOverlapping(taskToBeCreated)) {
+            taskToBeCreated.setId(taskID);
+            listOfEpics.put(taskID, taskToBeCreated);
+            createdTaskID = taskID;
+            taskID++;
+        }else{
+            System.out.println("Обнаружено пересечение с другой задачей");
+        }
         return createdTaskID;
     }
 
@@ -87,7 +111,9 @@ public class InMemoryTaskManager implements TaskManager {
             epicToBeUnLinkedWithDeletedSubtask.setListOfTasks(listOfEpicsSubtasks);
             listOfEpics.put(epicToBeUnLinkedWithDeletedSubtask.getId(), epicToBeUnLinkedWithDeletedSubtask);
             listOfSubtasks.remove(taskToBeDeleted);
+            recalculateOrUpdateTaskStatus();
             managerForHistory.remove(taskToBeDeleted);
+            sortedListOfTasksByDateTime.remove(subtaskToBeDeleted);
         }
     }
 
@@ -97,6 +123,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (standardtaskToBeDeleted != null) {
             listOfStandardTasks.remove(taskToBeDeleted);
             managerForHistory.remove(taskToBeDeleted);
+            sortedListOfTasksByDateTime.remove(standardtaskToBeDeleted);
         }
     }
 
@@ -108,12 +135,14 @@ public class InMemoryTaskManager implements TaskManager {
             listOfSubtasksToBeDeleted = epicToBeDeleted.getListOfSubtasks();
             if (listOfSubtasksToBeDeleted != null) {
                 for (int i : listOfSubtasksToBeDeleted) {
+                    sortedListOfTasksByDateTime.remove(listOfSubtasks.get(i));
                     listOfSubtasks.remove(i);
                     managerForHistory.remove(taskToBeDeleted);
                 }
             }
             listOfEpics.remove(taskToBeDeleted);
             managerForHistory.remove(taskToBeDeleted);
+            sortedListOfTasksByDateTime.remove(epicToBeDeleted);
         }
     }
 
@@ -196,6 +225,7 @@ public class InMemoryTaskManager implements TaskManager {
                     SubTask subtaskToCheckTheirParentId = listOfSubtasks.get(i);
                     listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);
                 }
+
             }
         }
         return listOfSubtasksForEPIC;
@@ -236,25 +266,47 @@ public class InMemoryTaskManager implements TaskManager {
     private void recalculateOrUpdateTaskStatus() {
         for (Integer i : listOfEpics.keySet()) {
             Epic currentRecalculatedEpic = listOfEpics.get(i);
-            int numberOfSubtsaksInEpic = currentRecalculatedEpic.getListOfSubtasks().size();
             int numberOfNew = 0; //Кол-во подзадач статуса New
             int numberOfDone = 0; //Кол-во подзадач статуса DONE
-            ArrayList<Integer> listOfEpicSubtasks = listOfEpics.get(i).getListOfSubtasks();//Тут будут ID-шники подзадач текущего эпика
-            for (int j = 1; j < numberOfSubtsaksInEpic; j++) {
+            ArrayList<Integer> listOfEpicSubtasks = currentRecalculatedEpic.getListOfSubtasks();//Тут будут ID-шники подзадач текущего эпика
+            LocalDateTime epicStartDateTime = currentRecalculatedEpic.getStartDateTime(); //на основе подзадач будем определять время старта эпика - это будет время самой ранней его подзадачи
+            LocalDateTime epicEndDateTime = currentRecalculatedEpic.calculateTaskEndDateTime();
+            Duration epicDuration = Duration.ofMinutes(0);//Начинаем с нуля, на основе длительностей подзадач будем считать длительность всего эпика
+            boolean firstStartOfLoop = true;//временная переменная, что бы в начале цикла эпику назначить дату его старта датой первой обрабатываемой задачи. Для других уже будет сравнение
+            for (int j : currentRecalculatedEpic.getListOfSubtasks()) {
                 SubTask currentSubtaskToCalculateStatus = listOfSubtasks.get(j);
-                if (currentSubtaskToCalculateStatus != null) {
-                    if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.NEW)) {
-                        numberOfNew++;
-                    }
-                    if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.DONE)) {
-                        numberOfDone++;
-                    }
+                LocalDateTime subtaskStartDateTime = currentSubtaskToCalculateStatus.getStartDateTime();
+                LocalDateTime subtaskEndDateTime = currentSubtaskToCalculateStatus.calculateTaskEndDateTime();
+                Duration subTaskDuration = currentSubtaskToCalculateStatus.getDuration();
+
+                if (firstStartOfLoop) {//При первой итерации присваеваем эпику дату его начала равной дате начала первой взятой его задачи. Для всех остальных подзадач будет уже сравнение по дате
+                    epicStartDateTime = subtaskStartDateTime;
+                    epicEndDateTime = subtaskEndDateTime;
+                    firstStartOfLoop = false;
                 }
+                if(subtaskEndDateTime.isAfter(epicEndDateTime)){
+                    epicEndDateTime = subtaskEndDateTime;//Если подзадача оканчивается позже конечнодаты эпика, то меняем дату окончания эпика на дату окончания подзадачи
+                }
+                if (subtaskStartDateTime.isBefore(epicStartDateTime)) {//Если подзадача начинается ранее, чем имеющееся ачало у эпика, то обновляем время начала
+                    epicStartDateTime = subtaskStartDateTime;
+                }
+                epicDuration = epicDuration.plus(subTaskDuration);//Увеличиваем длительность эпика на длительность входящей в его состав подзадачи
+
+                if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.NEW)) {
+                    numberOfNew++;
+                }
+                if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.DONE)) {
+                    numberOfDone++;
+                }
+
             }
-            if (numberOfNew == listOfEpicSubtasks.size() - 1) { //Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
+            currentRecalculatedEpic.setStartDateTime(epicStartDateTime);//Записываем в эпик дату старта
+            currentRecalculatedEpic.setDuration(epicDuration);//Записываем в эпик длительность
+            currentRecalculatedEpic.setEndTime(epicEndDateTime);//Записываем в эпик время окончания
+            if (numberOfNew == listOfEpicSubtasks.size()) { //Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
                 currentRecalculatedEpic.setTaskStatus(TaskStatus.NEW);
                 listOfEpics.put(i, currentRecalculatedEpic);
-            } else if (numberOfDone == listOfEpicSubtasks.size() - 1) {
+            } else if (numberOfDone == listOfEpicSubtasks.size()) {
                 currentRecalculatedEpic.setTaskStatus(TaskStatus.DONE);
                 listOfEpics.put(i, currentRecalculatedEpic);
             } else {
@@ -262,5 +314,35 @@ public class InMemoryTaskManager implements TaskManager {
                 listOfEpics.put(i, currentRecalculatedEpic);//Сохраняем вычисленное значение родительской задачи
             }
         }
+    }
+
+    public boolean checkTasksOverlapping(Task taskToCheck){
+        boolean result = false;
+        for(Task taskToCompare: sortedListOfTasksByDateTime){
+            if(taskToCheck.getStartDateTime().isBefore(taskToCompare.getStartDateTime()) && taskToCheck.calculateTaskEndDateTime().isAfter(taskToCompare.getStartDateTime())){
+                result = true;
+            }
+            if(taskToCheck.getStartDateTime().isBefore(taskToCompare.getStartDateTime()) && taskToCheck.calculateTaskEndDateTime().isAfter(taskToCompare.calculateTaskEndDateTime())){
+                result = true;
+            }
+            if(taskToCompare.calculateTaskEndDateTime().isAfter(taskToCheck.getStartDateTime()) && taskToCompare.getStartDateTime().isBefore(taskToCheck.getStartDateTime())){
+                result = true;
+            }
+        }
+        return result;
+    }
+}
+class taskComparator implements Comparator<Task> {
+
+    @Override
+    public int compare(Task o1, Task o2) {
+        boolean comparation = o1.getStartDateTime().isBefore(o2.getStartDateTime());
+        int result = 0;
+        if (comparation) {
+            result = -1;
+        } else {
+            result = 1;
+        }
+        return result;
     }
 }
