@@ -14,7 +14,7 @@ public abstract class Task {
     private Duration duration;
     private LocalDateTime startDateTime;
     private Integer id;
-    private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
     public Duration getDuration() {
         return duration;
