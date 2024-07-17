@@ -19,7 +19,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     HistoryManager managerForHistory = Managers.getDefaultHistory();
 
-    taskComparator taskComporator = new taskComparator();//Компоратор для сравнения задачек по времени их начала
+    TaskComparator taskComporator = new TaskComparator();//Компоратор для сравнения задачек по времени их начала
     private final TreeSet<Task> sortedListOfTasksByDateTime = new TreeSet<>(taskComporator);//Создаём сортированный список всех задачек
 
     public TreeSet<Task> getPrioritizedTasks() {
@@ -278,7 +278,8 @@ public class InMemoryTaskManager implements TaskManager {
                 LocalDateTime subtaskEndDateTime = currentSubtaskToCalculateStatus.calculateTaskEndDateTime();
                 Duration subTaskDuration = currentSubtaskToCalculateStatus.getDuration();
 
-                if (firstStartOfLoop) {//При первой итерации присваеваем эпику дату его начала равной дате начала первой взятой его задачи. Для всех остальных подзадач будет уже сравнение по дате
+                if (firstStartOfLoop) {
+                    //При первой итерации присваеваем эпику дату его начала равной дате начала первой взятой его задачи. Для всех остальных подзадач будет уже сравнение по дате
                     epicStartDateTime = subtaskStartDateTime;
                     epicEndDateTime = subtaskEndDateTime;
                     firstStartOfLoop = false;
@@ -327,20 +328,6 @@ public class InMemoryTaskManager implements TaskManager {
             if (taskToCompare.calculateTaskEndDateTime().isAfter(taskToCheck.getStartDateTime()) && taskToCompare.getStartDateTime().isBefore(taskToCheck.getStartDateTime())) {
                 result = true;
             }
-        }
-        return result;
-    }
-}
-class taskComparator implements Comparator<Task> {
-
-    @Override
-    public int compare(Task o1, Task o2) {
-        boolean comparation = o1.getStartDateTime().isBefore(o2.getStartDateTime());
-        int result = 0;
-        if (comparation) {
-            result = -1;
-        } else {
-            result = 1;
         }
         return result;
     }
