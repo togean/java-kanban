@@ -25,7 +25,7 @@ public class Main {
             Duration taskDuration;
             int indexToManipulate;
             int parentIDForSubtask = 0;
-            DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
+            final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
             String command = scanner.nextLine();
             switch (command) {
