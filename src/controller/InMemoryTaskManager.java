@@ -287,7 +287,8 @@ public class InMemoryTaskManager implements TaskManager {
                 if (subtaskEndDateTime.isAfter(epicEndDateTime)) {
                     epicEndDateTime = subtaskEndDateTime;//Если подзадача оканчивается позже конечнодаты эпика, то меняем дату окончания эпика на дату окончания подзадачи
                 }
-                if (subtaskStartDateTime.isBefore(epicStartDateTime)) {//Если подзадача начинается ранее, чем имеющееся ачало у эпика, то обновляем время начала
+                if (subtaskStartDateTime.isBefore(epicStartDateTime)) {
+                    //Если подзадача начинается ранее, чем имеющееся ачало у эпика, то обновляем время начала
                     epicStartDateTime = subtaskStartDateTime;
                 }
                 epicDuration = epicDuration.plus(subTaskDuration);//Увеличиваем длительность эпика на длительность входящей в его состав подзадачи
