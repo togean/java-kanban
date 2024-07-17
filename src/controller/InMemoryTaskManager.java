@@ -22,7 +22,7 @@ public class InMemoryTaskManager implements TaskManager {
     taskComparator taskComporator = new taskComparator();//Компоратор для сравнения задачек по времени их начала
     private final TreeSet<Task> sortedListOfTasksByDateTime = new TreeSet<>(taskComporator);//Создаём сортированный список всех задачек
 
-    public TreeSet<Task> getPrioritizedTasks(){
+    public TreeSet<Task> getPrioritizedTasks() {
         sortedListOfTasksByDateTime.clear();//Что бы небыло дубляжа при создании отсортированного списка, очищаем старое наполнение
         sortedListOfTasksByDateTime.addAll(listOfStandardTasks.values());
         sortedListOfTasksByDateTime.addAll(listOfSubtasks.values());
@@ -49,12 +49,12 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Integer createTask(StandardTask taskToBeCreated) {
         int createdTaskID = 0;
-        if(!checkTasksOverlapping(taskToBeCreated)) {
+        if (!checkTasksOverlapping(taskToBeCreated)) {
             taskToBeCreated.setId(taskID);
             listOfStandardTasks.put(taskID, taskToBeCreated);
             createdTaskID = taskID;
             taskID++;
-        }else{
+        } else {
             System.out.println("Обнаружено пересечение с другой задачей");
         }
         return createdTaskID;
@@ -63,7 +63,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Integer createSubtask(SubTask taskToBeCreated) {
         int createdTaskID = 0;
-        if(!checkTasksOverlapping(taskToBeCreated)) {
+        if (!checkTasksOverlapping(taskToBeCreated)) {
             Integer subtaskID = taskID;
             taskToBeCreated.setId(subtaskID);
             int parentID = taskToBeCreated.getParentID();
@@ -80,7 +80,7 @@ public class InMemoryTaskManager implements TaskManager {
                 }
                 recalculateOrUpdateTaskStatus();
             }
-        }else{
+        } else {
             System.out.println("Обнаружено пересечение с другой задачей");
         }
         return createdTaskID;
@@ -88,13 +88,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Integer createEpic(Epic taskToBeCreated) {
-        int createdTaskID =0;
-        if(!checkTasksOverlapping(taskToBeCreated)) {
+        int createdTaskID = 0;
+        if (!checkTasksOverlapping(taskToBeCreated)) {
             taskToBeCreated.setId(taskID);
             listOfEpics.put(taskID, taskToBeCreated);
             createdTaskID = taskID;
             taskID++;
-        }else{
+        } else {
             System.out.println("Обнаружено пересечение с другой задачей");
         }
         return createdTaskID;
@@ -283,7 +283,7 @@ public class InMemoryTaskManager implements TaskManager {
                     epicEndDateTime = subtaskEndDateTime;
                     firstStartOfLoop = false;
                 }
-                if(subtaskEndDateTime.isAfter(epicEndDateTime)){
+                if (subtaskEndDateTime.isAfter(epicEndDateTime)) {
                     epicEndDateTime = subtaskEndDateTime;//Если подзадача оканчивается позже конечнодаты эпика, то меняем дату окончания эпика на дату окончания подзадачи
                 }
                 if (subtaskStartDateTime.isBefore(epicStartDateTime)) {//Если подзадача начинается ранее, чем имеющееся ачало у эпика, то обновляем время начала
@@ -315,16 +315,16 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    public boolean checkTasksOverlapping(Task taskToCheck){
+    public boolean checkTasksOverlapping(Task taskToCheck) {
         boolean result = false;
-        for(Task taskToCompare: sortedListOfTasksByDateTime){
-            if(taskToCheck.getStartDateTime().isBefore(taskToCompare.getStartDateTime()) && taskToCheck.calculateTaskEndDateTime().isAfter(taskToCompare.getStartDateTime())){
+        for (Task taskToCompare : sortedListOfTasksByDateTime) {
+            if (taskToCheck.getStartDateTime().isBefore(taskToCompare.getStartDateTime()) && taskToCheck.calculateTaskEndDateTime().isAfter(taskToCompare.getStartDateTime())) {
                 result = true;
             }
-            if(taskToCheck.getStartDateTime().isBefore(taskToCompare.getStartDateTime()) && taskToCheck.calculateTaskEndDateTime().isAfter(taskToCompare.calculateTaskEndDateTime())){
+            if (taskToCheck.getStartDateTime().isBefore(taskToCompare.getStartDateTime()) && taskToCheck.calculateTaskEndDateTime().isAfter(taskToCompare.calculateTaskEndDateTime())) {
                 result = true;
             }
-            if(taskToCompare.calculateTaskEndDateTime().isAfter(taskToCheck.getStartDateTime()) && taskToCompare.getStartDateTime().isBefore(taskToCheck.getStartDateTime())){
+            if (taskToCompare.calculateTaskEndDateTime().isAfter(taskToCheck.getStartDateTime()) && taskToCompare.getStartDateTime().isBefore(taskToCheck.getStartDateTime())) {
                 result = true;
             }
         }

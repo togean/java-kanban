@@ -18,7 +18,7 @@ class TaskTest {
     TaskManager managerForInMemoryTasks;
     LocalDateTime taskStartDate;
     Duration taskDuration;
-    DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
     @BeforeEach
     public void BeforeEach() {
@@ -326,7 +326,7 @@ class TaskTest {
     }
 
     @Test
-    void twoTasksAreOverlapped(){
+    void twoTasksAreOverlapped() {
         taskStartDate = LocalDateTime.parse("10:00 20.07.24", DATE_TIME_FORMATTER);
         taskDuration = Duration.ofMinutes(30);
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details", taskStartDate, taskDuration);
@@ -341,7 +341,7 @@ class TaskTest {
     }
 
     @Test
-    void epicWillChangeStatusDependingOnSubtasksStatuses(){
+    void epicWillChangeStatusDependingOnSubtasksStatuses() {
         taskStartDate = LocalDateTime.parse("10:10 20.07.24", DATE_TIME_FORMATTER);
         taskDuration = Duration.ofMinutes(5);
         Epic newEpic = new Epic("Epic1", "Epic1 details", taskStartDate, taskDuration);

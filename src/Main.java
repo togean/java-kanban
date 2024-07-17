@@ -24,7 +24,7 @@ public class Main {
             LocalDateTime taskStartDate = null;
             Duration taskDuration;
             int indexToManipulate;
-            int parentIDForSubtask =0;
+            int parentIDForSubtask = 0;
             DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
             String command = scanner.nextLine();
@@ -37,11 +37,11 @@ public class Main {
                     System.out.println("Введите время старта новой задачи (HH:mm dd.MM.yy): ");
                     inputDateTime = scanner.nextLine();
                     boolean inputIsValid = false;
-                    while(!inputIsValid) {
-                        try{
+                    while (!inputIsValid) {
+                        try {
                             taskStartDate = LocalDateTime.parse(inputDateTime, DATE_TIME_FORMATTER);
                             inputIsValid = true;
-                        }catch(Exception ex){
+                        } catch (Exception ex) {
                             System.out.println("Введите время старта новой задачи (HH:mm dd.MM.yy): ");
                             inputDateTime = scanner.nextLine();
                         }
@@ -49,11 +49,11 @@ public class Main {
                     System.out.println("Введите длительность новой задачи (в минутах): ");
                     int duration = -1;
                     inputIsValid = false;
-                    while(!inputIsValid) {
+                    while (!inputIsValid) {
                         duration = scanner.nextInt();
-                        if(duration>0) {
+                        if (duration > 0) {
                             inputIsValid = true;
-                        }else{
+                        } else {
                             System.out.println("Длительность задачи должна быть больше нуля ");
                             System.out.println("Введите длительность новой задачи (в минутах): ");
                         }
@@ -62,7 +62,7 @@ public class Main {
                     StandardTask newStandardtask = new StandardTask(description, details, taskStartDate, taskDuration);
                     scanner.nextLine();
                     inputIsValid = false;
-                    while(!inputIsValid) {
+                    while (!inputIsValid) {
                         try {
                             inputValidation(newStandardtask);
                             inputIsValid = true;
@@ -98,11 +98,11 @@ public class Main {
                     details = scanner.nextLine();
                     System.out.println("Введите id эпика для новой подзадачи: ");
                     inputIsValid = false;
-                    while(!inputIsValid) {
-                        try{
+                    while (!inputIsValid) {
+                        try {
                             parentIDForSubtask = scanner.nextInt();
                             inputIsValid = true;
-                        }catch(Exception ex){
+                        } catch (Exception ex) {
                             System.out.println("Введите id эпика для новой подзадачи: ");
                             parentIDForSubtask = scanner.nextInt();
                         }
@@ -111,11 +111,11 @@ public class Main {
                     System.out.println("Введите дату старта новой подзадачи (HH:mm dd.MM.yy): ");
                     inputDateTime = scanner.nextLine();
                     inputIsValid = false;
-                    while(!inputIsValid) {
-                        try{
+                    while (!inputIsValid) {
+                        try {
                             taskStartDate = LocalDateTime.parse(inputDateTime, DATE_TIME_FORMATTER);
                             inputIsValid = true;
-                        }catch(Exception ex){
+                        } catch (Exception ex) {
                             System.out.println("Введите время старта новой задачи (HH:mm dd.MM.yy): ");
                             inputDateTime = scanner.nextLine();
                         }
@@ -123,11 +123,11 @@ public class Main {
                     System.out.println("Введите длительность новой подзадачи (в минутах): ");
                     duration = -1;
                     inputIsValid = false;
-                    while(!inputIsValid) {
+                    while (!inputIsValid) {
                         duration = scanner.nextInt();
-                        if(duration>0) {
+                        if (duration > 0) {
                             inputIsValid = true;
-                        }else{
+                        } else {
                             System.out.println("Длительность задачи должна быть больше нуля ");
                             System.out.println("Введите длительность новой задачи (в минутах): ");
                         }
@@ -136,7 +136,7 @@ public class Main {
                     SubTask newSubTask = new SubTask(description, details, parentIDForSubtask, taskStartDate, taskDuration);
                     scanner.nextLine();
                     inputIsValid = false;
-                    while(!inputIsValid) {
+                    while (!inputIsValid) {
                         try {
                             inputValidation(newSubTask);
                             inputIsValid = true;
@@ -291,10 +291,10 @@ public class Main {
     }
 
     private static void inputValidation(Task task) {
-        if(task.getDescription()==null || task.getDescription().isEmpty()){
+        if (task.getDescription() == null || task.getDescription().isEmpty()) {
             throw new DescriptionIsEmptyException("Вводимое поле description не должно быть пустым");
         }
-        if(task.getDetails()==null || task.getDetails().isEmpty()){
+        if (task.getDetails() == null || task.getDetails().isEmpty()) {
             throw new DetailsIsEmptyException("Вводимое поле details не должно быть пустым");
         }
     }
