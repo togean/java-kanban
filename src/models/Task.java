@@ -6,6 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public abstract class Task {
+
+
     private String description;
     private String details;
     private TaskStatus taskStatus;
@@ -46,6 +48,10 @@ public abstract class Task {
 
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public TaskStatus getTaskStatus() {

@@ -1,4 +1,6 @@
 import controller.FileBackedTaskManager;
+import exceptions.DescriptionIsEmptyException;
+import exceptions.DetailsIsEmptyException;
 import models.*;
 
 import java.time.Duration;
@@ -19,10 +21,10 @@ public class Main {
             String details;
             String taskStatus;
             String inputDateTime;
-            LocalDateTime taskStartDate;
+            LocalDateTime taskStartDate = null;
             Duration taskDuration;
             int indexToManipulate;
-            int parentIDForSubtask;
+            int parentIDForSubtask =0;
             DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
             String command = scanner.nextLine();
@@ -34,10 +36,49 @@ public class Main {
                     details = scanner.nextLine();
                     System.out.println("Введите время старта новой задачи (HH:mm dd.MM.yy): ");
                     inputDateTime = scanner.nextLine();
-                    taskStartDate = LocalDateTime.parse(inputDateTime, DATE_TIME_FORMATTER);
+                    boolean inputIsValid = false;
+                    while(!inputIsValid) {
+                        try{
+                            taskStartDate = LocalDateTime.parse(inputDateTime, DATE_TIME_FORMATTER);
+                            inputIsValid = true;
+                        }catch(Exception ex){
+                            System.out.println("Введите время старта новой задачи (HH:mm dd.MM.yy): ");
+                            inputDateTime = scanner.nextLine();
+                        }
+                    }
                     System.out.println("Введите длительность новой задачи (в минутах): ");
-                    taskDuration = Duration.ofMinutes(scanner.nextInt());
+                    int duration = -1;
+                    inputIsValid = false;
+                    while(!inputIsValid) {
+                        duration = scanner.nextInt();
+                        if(duration>0) {
+                            inputIsValid = true;
+                        }else{
+                            System.out.println("Длительность задачи должна быть больше нуля ");
+                            System.out.println("Введите длительность новой задачи (в минутах): ");
+                        }
+                    }
+                    taskDuration = Duration.ofMinutes(duration);
                     StandardTask newStandardtask = new StandardTask(description, details, taskStartDate, taskDuration);
+                    scanner.nextLine();
+                    inputIsValid = false;
+                    while(!inputIsValid) {
+                        try {
+                            inputValidation(newStandardtask);
+                            inputIsValid = true;
+                        } catch (DescriptionIsEmptyException ex) {
+                            System.out.println(ex.getMessage());
+                            System.out.println("Введите description новой задачи: ");
+                            description = scanner.nextLine();
+                            newStandardtask.setDescription(description);
+                        } catch (DetailsIsEmptyException ex) {
+                            System.out.println(ex.getMessage());
+                            System.out.println("Введите details новой задачи: ");
+                            details = scanner.nextLine();
+                            newStandardtask.setDetails(details);
+                        }
+                    }
+
                     tasksManager.createTask(newStandardtask);
                     break;
                 case "1":
@@ -56,14 +97,61 @@ public class Main {
                     System.out.println("Введите details новой подзадачи: ");
                     details = scanner.nextLine();
                     System.out.println("Введите id эпика для новой подзадачи: ");
-                    parentIDForSubtask = scanner.nextInt();
+                    inputIsValid = false;
+                    while(!inputIsValid) {
+                        try{
+                            parentIDForSubtask = scanner.nextInt();
+                            inputIsValid = true;
+                        }catch(Exception ex){
+                            System.out.println("Введите id эпика для новой подзадачи: ");
+                            parentIDForSubtask = scanner.nextInt();
+                        }
+                    }
                     scanner.nextLine();
                     System.out.println("Введите дату старта новой подзадачи (HH:mm dd.MM.yy): ");
                     inputDateTime = scanner.nextLine();
-                    taskStartDate = LocalDateTime.parse(inputDateTime, DATE_TIME_FORMATTER);
+                    inputIsValid = false;
+                    while(!inputIsValid) {
+                        try{
+                            taskStartDate = LocalDateTime.parse(inputDateTime, DATE_TIME_FORMATTER);
+                            inputIsValid = true;
+                        }catch(Exception ex){
+                            System.out.println("Введите время старта новой задачи (HH:mm dd.MM.yy): ");
+                            inputDateTime = scanner.nextLine();
+                        }
+                    }
                     System.out.println("Введите длительность новой подзадачи (в минутах): ");
-                    taskDuration = Duration.ofMinutes(scanner.nextInt());
+                    duration = -1;
+                    inputIsValid = false;
+                    while(!inputIsValid) {
+                        duration = scanner.nextInt();
+                        if(duration>0) {
+                            inputIsValid = true;
+                        }else{
+                            System.out.println("Длительность задачи должна быть больше нуля ");
+                            System.out.println("Введите длительность новой задачи (в минутах): ");
+                        }
+                    }
+                    taskDuration = Duration.ofMinutes(duration);
                     SubTask newSubTask = new SubTask(description, details, parentIDForSubtask, taskStartDate, taskDuration);
+                    scanner.nextLine();
+                    inputIsValid = false;
+                    while(!inputIsValid) {
+                        try {
+                            inputValidation(newSubTask);
+                            inputIsValid = true;
+                        } catch (DescriptionIsEmptyException ex) {
+                            System.out.println(ex.getMessage());
+                            System.out.println("Введите description новой подзадачи: ");
+                            description = scanner.nextLine();
+                            newSubTask.setDescription(description);
+                        } catch (DetailsIsEmptyException ex) {
+                            System.out.println(ex.getMessage());
+                            System.out.println("Введите details новой подзадачи: ");
+                            details = scanner.nextLine();
+                            newSubTask.setDetails(details);
+                        }
+                    }
                     tasksManager.createSubtask(newSubTask);
                     break;
                 case "3":
@@ -85,7 +173,7 @@ public class Main {
                     break;
                 case "4":
                     System.out.println("Введите ID обновляемого эпика: ");
-                    Integer epicID = scanner.nextInt();
+                    int epicID = scanner.nextInt();
                     scanner.nextLine();
                     System.out.println("Введите новый details для эпика: ");
                     details = scanner.nextLine();
@@ -202,4 +290,14 @@ public class Main {
         System.out.println("19. Выход");
     }
 
+    private static void inputValidation(Task task) {
+        if(task.getDescription()==null || task.getDescription().isEmpty()){
+            throw new DescriptionIsEmptyException("Вводимое поле description не должно быть пустым");
+        }
+        if(task.getDetails()==null || task.getDetails().isEmpty()){
+            throw new DetailsIsEmptyException("Вводимое поле details не должно быть пустым");
+        }
+    }
 }
+
+

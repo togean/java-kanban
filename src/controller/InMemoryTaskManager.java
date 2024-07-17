@@ -9,7 +9,6 @@ import models.StandardTask;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -121,7 +120,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTask(Integer taskToBeDeleted) {
         StandardTask standardtaskToBeDeleted = listOfStandardTasks.get(taskToBeDeleted);
         if (standardtaskToBeDeleted != null) {
-            listOfStandardTasks.remove(taskToBeDeleted);
+            listOfStandardTasks.remove(standardtaskToBeDeleted.getId());
             managerForHistory.remove(taskToBeDeleted);
             sortedListOfTasksByDateTime.remove(standardtaskToBeDeleted);
         }

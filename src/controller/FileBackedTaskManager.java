@@ -109,11 +109,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void deleteAll() {
-        for (int i = 0; i < super.getListOfEpics().size(); i++) {
-            deleteEpic(i);
+        for (Epic epic : super.getListOfEpics()) {
+            deleteEpic(epic.getId());
         }
-        for (int i = 0; i < super.getListOfStandardTasks().size(); i++) {
-            deleteTask(i);
+        for (Task task : super.getListOfStandardTasks()) {
+            deleteTask(task.getId());
         }
         save(fileName);
     }
