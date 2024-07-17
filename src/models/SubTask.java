@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 public class SubTask extends Task {
     private Integer parentID;
-    DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
     public Integer getParentID() {
         return parentID;

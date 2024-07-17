@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class Epic extends Task {
     ArrayList<Integer> listOfSubtasks = new ArrayList<>();
-    DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
 
     public void setEndTime(LocalDateTime endTime) {
