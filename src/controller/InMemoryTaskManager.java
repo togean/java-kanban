@@ -6,8 +6,6 @@ import models.Task;
 import models.TaskStatus;
 import models.StandardTask;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -148,8 +146,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAll() {
-        listOfEpics.forEach((number,epic) -> deleteEpic(number));
-        listOfStandardTasks.forEach((number, task)->deleteTask(number));
+        listOfEpics.forEach((number, epic) -> deleteEpic(number));
+        listOfStandardTasks.forEach((number, task) -> deleteTask(number));
     }
 
     @Override
@@ -254,18 +252,18 @@ public class InMemoryTaskManager implements TaskManager {
 
     private void recalculateOrUpdateTaskStatus() {
         listOfEpics.values().stream()
-                .peek(epic->{
+                .peek(epic -> {
                     int numberOfSubTasks = epic.getListOfSubtasks().size();
                     int listOfSubTasksWithStatusDONE = 0;
                     int listOfSubTasksWithStatusNEW = 0;
                     Optional<SubTask> subtaskWithEarlieStartTime = null;
                     Optional<SubTask> subtaskWithLatestStartTime = null;
-                    for(int i: epic.getListOfSubtasks()){
-                        listOfSubTasksWithStatusDONE = listOfSubTasksWithStatusDONE+listOfSubtasks.values().stream()
+                    for (int i : epic.getListOfSubtasks()) {
+                        listOfSubTasksWithStatusDONE = listOfSubTasksWithStatusDONE + listOfSubtasks.values().stream()
                                 .filter(subtask -> subtask.getId().equals(i))
                                 .filter(subtask -> subtask.getTaskStatus().equals(TaskStatus.DONE))
                                 .toList().size();
-                        listOfSubTasksWithStatusNEW = listOfSubTasksWithStatusNEW+listOfSubtasks.values().stream()
+                        listOfSubTasksWithStatusNEW = listOfSubTasksWithStatusNEW + listOfSubtasks.values().stream()
                                 .filter(subtask -> subtask.getId().equals(i))
                                 .filter(subtask -> subtask.getTaskStatus().equals(TaskStatus.NEW))
                                 .toList().size();
@@ -278,11 +276,11 @@ public class InMemoryTaskManager implements TaskManager {
                     epic.setStartDateTime(subtaskWithEarlieStartTime.get().getStartDateTime());
                     epic.setEndTime(subtaskWithLatestStartTime.get().getStartDateTime().plusMinutes(subtaskWithLatestStartTime.get().getDuration().toMinutes()));
 
-                    if(numberOfSubTasks==listOfSubTasksWithStatusDONE){
+                    if (numberOfSubTasks == listOfSubTasksWithStatusDONE) {
                         epic.setTaskStatus(TaskStatus.DONE);
-                    }else if(numberOfSubTasks==listOfSubTasksWithStatusNEW) {
+                    } else if (numberOfSubTasks == listOfSubTasksWithStatusNEW) {
                         epic.setTaskStatus(TaskStatus.NEW);
-                    }else{
+                    } else {
                         epic.setTaskStatus(TaskStatus.IN_PROGRESS);
                     }
                 })
