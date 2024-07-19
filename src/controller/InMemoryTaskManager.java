@@ -273,10 +273,10 @@ public class InMemoryTaskManager implements TaskManager {
                                 .max(taskComporator);
                     }
 
-                    if(subtaskWithEarlieStartTime.isPresent()) {
+                    if (subtaskWithEarlieStartTime.isPresent()) {
                         epic.setStartDateTime(subtaskWithEarlieStartTime.get().getStartDateTime());
                     }
-                    if(subtaskWithLatestStartTime.isPresent()) {
+                    if (subtaskWithLatestStartTime.isPresent()) {
                         epic.setEndTime(subtaskWithLatestStartTime.get().getStartDateTime().plusMinutes(subtaskWithLatestStartTime.get().getDuration().toMinutes()));
                     }
                     if (numberOfSubTasks == listOfSubTasksWithStatusDONE) {
