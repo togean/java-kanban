@@ -28,7 +28,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             for (SubTask subtask : super.getListOfSubTasks()) {
                 writer.write(subtask.getId() + "," + TaskTypes.SUBTASK + "," + subtask.getDescription() + "," + subtask.getTaskStatus() + "," + subtask.getDetails() + "," + subtask.getParentID() + "," + subtask.getStartDateTime() + "," + subtask.getDuration() + "\n");
             }
-
         } catch (FileNotFoundException ex) {
             throw new FileToSaveTasksNotFound("Файл " + this.fileName + " не найден");
         } catch (IOException ex) {
@@ -109,12 +108,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void deleteAll() {
-        for (Epic epic : super.getListOfEpics()) {
-            deleteEpic(epic.getId());
-        }
-        for (Task task : super.getListOfStandardTasks()) {
-            deleteTask(task.getId());
-        }
+        super.getListOfEpics().forEach(epic -> deleteEpic(epic.getId()));
+        super.getListOfStandardTasks().forEach(task -> deleteTask(task.getId()));
         save(fileName);
     }
 

@@ -9,6 +9,7 @@ import models.StandardTask;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -133,11 +134,11 @@ public class InMemoryTaskManager implements TaskManager {
             ArrayList<Integer> listOfSubtasksToBeDeleted;
             listOfSubtasksToBeDeleted = epicToBeDeleted.getListOfSubtasks();
             if (listOfSubtasksToBeDeleted != null) {
-                for (int i : listOfSubtasksToBeDeleted) {
+                listOfSubtasksToBeDeleted.forEach(i -> {
                     sortedListOfTasksByDateTime.remove(listOfSubtasks.get(i));
                     listOfSubtasks.remove(i);
                     managerForHistory.remove(taskToBeDeleted);
-                }
+                });
             }
             listOfEpics.remove(taskToBeDeleted);
             managerForHistory.remove(taskToBeDeleted);
@@ -147,12 +148,8 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteAll() {
-        for (int i = 0; i < listOfEpics.size(); i++) {
-            deleteEpic(i);
-        }
-        for (int i = 0; i < listOfStandardTasks.size(); i++) {
-            deleteTask(i);
-        }
+        listOfEpics.forEach((number,epic) -> deleteEpic(number));
+        listOfStandardTasks.forEach((number, task)->deleteTask(number));
     }
 
     @Override
@@ -220,11 +217,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (epicToGetList != null) {
             listOfSubtasksIDs = epicToGetList.getListOfSubtasks();
             if (listOfSubtasksIDs != null) {
-                for (Integer i : listOfSubtasksIDs) {
+                listOfSubtasksIDs.forEach(i -> {
                     SubTask subtaskToCheckTheirParentId = listOfSubtasks.get(i);
                     listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);
-                }
-
+                });
             }
         }
         return listOfSubtasksForEPIC;
@@ -238,83 +234,60 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public ArrayList<SubTask> getAllSubtasks() {
         ArrayList<SubTask> result = new ArrayList<>();
-        for (SubTask task : listOfSubtasks.values()) {
-            result.add(task);
-        }
+        result.addAll(listOfSubtasks.values());
         return result;
     }
 
     @Override
     public ArrayList<Epic> getAllEpics() {
         ArrayList<Epic> result = new ArrayList<>();
-        for (Epic epic : listOfEpics.values()) {
-            result.add(epic);
-        }
+        result.addAll(listOfEpics.values());
         return result;
     }
 
     @Override
     public ArrayList<Task> getAllTasks() {
         ArrayList<Task> result = new ArrayList<>();
-        for (Task task : listOfStandardTasks.values()) {
-            result.add(task);
-        }
+        result.addAll(listOfStandardTasks.values());
         return result;
     }
 
     private void recalculateOrUpdateTaskStatus() {
-        for (Integer i : listOfEpics.keySet()) {
-            Epic currentRecalculatedEpic = listOfEpics.get(i);
-            int numberOfNew = 0; //Кол-во подзадач статуса New
-            int numberOfDone = 0; //Кол-во подзадач статуса DONE
-            ArrayList<Integer> listOfEpicSubtasks = currentRecalculatedEpic.getListOfSubtasks();//Тут будут ID-шники подзадач текущего эпика
-            LocalDateTime epicStartDateTime = currentRecalculatedEpic.getStartDateTime(); //на основе подзадач будем определять время старта эпика - это будет время самой ранней его подзадачи
-            LocalDateTime epicEndDateTime = currentRecalculatedEpic.calculateTaskEndDateTime();
-            Duration epicDuration = Duration.ofMinutes(0);//Начинаем с нуля, на основе длительностей подзадач будем считать длительность всего эпика
-            boolean firstStartOfLoop = true;//временная переменная, что бы в начале цикла эпику назначить дату его старта датой первой обрабатываемой задачи. Для других уже будет сравнение
-            for (int j : currentRecalculatedEpic.getListOfSubtasks()) {
-                SubTask currentSubtaskToCalculateStatus = listOfSubtasks.get(j);
-                LocalDateTime subtaskStartDateTime = currentSubtaskToCalculateStatus.getStartDateTime();
-                LocalDateTime subtaskEndDateTime = currentSubtaskToCalculateStatus.calculateTaskEndDateTime();
-                Duration subTaskDuration = currentSubtaskToCalculateStatus.getDuration();
+        listOfEpics.values().stream()
+                .peek(epic->{
+                    int numberOfSubTasks = epic.getListOfSubtasks().size();
+                    int listOfSubTasksWithStatusDONE = 0;
+                    int listOfSubTasksWithStatusNEW = 0;
+                    Optional<SubTask> subtaskWithEarlieStartTime = null;
+                    Optional<SubTask> subtaskWithLatestStartTime = null;
+                    for(int i: epic.getListOfSubtasks()){
+                        listOfSubTasksWithStatusDONE = listOfSubTasksWithStatusDONE+listOfSubtasks.values().stream()
+                                .filter(subtask -> subtask.getId().equals(i))
+                                .filter(subtask -> subtask.getTaskStatus().equals(TaskStatus.DONE))
+                                .toList().size();
+                        listOfSubTasksWithStatusNEW = listOfSubTasksWithStatusNEW+listOfSubtasks.values().stream()
+                                .filter(subtask -> subtask.getId().equals(i))
+                                .filter(subtask -> subtask.getTaskStatus().equals(TaskStatus.NEW))
+                                .toList().size();
+                        subtaskWithEarlieStartTime = listOfSubtasks.values().stream()
+                                .min(taskComporator);
+                        subtaskWithLatestStartTime = listOfSubtasks.values().stream()
+                                .max(taskComporator);
+                    }
 
-                if (firstStartOfLoop) {
-                    //При первой итерации присваеваем эпику дату его начала равной дате начала первой взятой его задачи. Для всех остальных подзадач будет уже сравнение по дате
-                    epicStartDateTime = subtaskStartDateTime;
-                    epicEndDateTime = subtaskEndDateTime;
-                    firstStartOfLoop = false;
-                }
-                if (subtaskEndDateTime.isAfter(epicEndDateTime)) {
-                    epicEndDateTime = subtaskEndDateTime;//Если подзадача оканчивается позже конечнодаты эпика, то меняем дату окончания эпика на дату окончания подзадачи
-                }
-                if (subtaskStartDateTime.isBefore(epicStartDateTime)) {
-                    //Если подзадача начинается ранее, чем имеющееся ачало у эпика, то обновляем время начала
-                    epicStartDateTime = subtaskStartDateTime;
-                }
-                epicDuration = epicDuration.plus(subTaskDuration);//Увеличиваем длительность эпика на длительность входящей в его состав подзадачи
+                    epic.setStartDateTime(subtaskWithEarlieStartTime.get().getStartDateTime());
+                    epic.setEndTime(subtaskWithLatestStartTime.get().getStartDateTime().plusMinutes(subtaskWithLatestStartTime.get().getDuration().toMinutes()));
 
-                if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.NEW)) {
-                    numberOfNew++;
-                }
-                if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.DONE)) {
-                    numberOfDone++;
-                }
+                    if(numberOfSubTasks==listOfSubTasksWithStatusDONE){
+                        epic.setTaskStatus(TaskStatus.DONE);
+                    }else if(numberOfSubTasks==listOfSubTasksWithStatusNEW) {
+                        epic.setTaskStatus(TaskStatus.NEW);
+                    }else{
+                        epic.setTaskStatus(TaskStatus.IN_PROGRESS);
+                    }
+                })
+                .collect(Collectors.toList());
 
-            }
-            currentRecalculatedEpic.setStartDateTime(epicStartDateTime);//Записываем в эпик дату старта
-            currentRecalculatedEpic.setDuration(epicDuration);//Записываем в эпик длительность
-            currentRecalculatedEpic.setEndTime(epicEndDateTime);//Записываем в эпик время окончания
-            if (numberOfNew == listOfEpicSubtasks.size()) { //Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
-                currentRecalculatedEpic.setTaskStatus(TaskStatus.NEW);
-                listOfEpics.put(i, currentRecalculatedEpic);
-            } else if (numberOfDone == listOfEpicSubtasks.size()) {
-                currentRecalculatedEpic.setTaskStatus(TaskStatus.DONE);
-                listOfEpics.put(i, currentRecalculatedEpic);
-            } else {
-                currentRecalculatedEpic.setTaskStatus(TaskStatus.IN_PROGRESS);
-                listOfEpics.put(i, currentRecalculatedEpic);//Сохраняем вычисленное значение родительской задачи
-            }
-        }
     }
 
     public boolean checkTasksOverlapping(Task taskToCheck) {

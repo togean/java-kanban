@@ -346,7 +346,6 @@ class TaskTest {
         taskDuration = Duration.ofMinutes(5);
         Epic newEpic = new Epic("Epic1", "Epic1 details", taskStartDate, taskDuration);
         managerForInMemoryTasks.createEpic(newEpic);
-        //int plannedSubTaskID = managerForInMemoryTasks.getTaskID();
         taskStartDate = LocalDateTime.parse("10:20 20.07.24", DATE_TIME_FORMATTER);
         taskDuration = Duration.ofMinutes(5);
         SubTask newSubTask = new SubTask("SubTask1", "SubTask1 details", 1, taskStartDate, taskDuration);
