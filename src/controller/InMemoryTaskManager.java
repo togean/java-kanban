@@ -256,8 +256,8 @@ public class InMemoryTaskManager implements TaskManager {
                     int numberOfSubTasks = epic.getListOfSubtasks().size();
                     int listOfSubTasksWithStatusDONE = 0;
                     int listOfSubTasksWithStatusNEW = 0;
-                    Optional<SubTask> subtaskWithEarlieStartTime = null;
-                    Optional<SubTask> subtaskWithLatestStartTime = null;
+                    Optional<SubTask> subtaskWithEarlieStartTime = Optional.empty();
+                    Optional<SubTask> subtaskWithLatestStartTime = Optional.empty();
                     for (int i : epic.getListOfSubtasks()) {
                         listOfSubTasksWithStatusDONE = listOfSubTasksWithStatusDONE + listOfSubtasks.values().stream()
                                 .filter(subtask -> subtask.getId().equals(i))
@@ -273,9 +273,12 @@ public class InMemoryTaskManager implements TaskManager {
                                 .max(taskComporator);
                     }
 
-                    epic.setStartDateTime(subtaskWithEarlieStartTime.get().getStartDateTime());
-                    epic.setEndTime(subtaskWithLatestStartTime.get().getStartDateTime().plusMinutes(subtaskWithLatestStartTime.get().getDuration().toMinutes()));
-
+                    if(subtaskWithEarlieStartTime.isPresent()) {
+                        epic.setStartDateTime(subtaskWithEarlieStartTime.get().getStartDateTime());
+                    }
+                    if(subtaskWithLatestStartTime.isPresent()) {
+                        epic.setEndTime(subtaskWithLatestStartTime.get().getStartDateTime().plusMinutes(subtaskWithLatestStartTime.get().getDuration().toMinutes()));
+                    }
                     if (numberOfSubTasks == listOfSubTasksWithStatusDONE) {
                         epic.setTaskStatus(TaskStatus.DONE);
                     } else if (numberOfSubTasks == listOfSubTasksWithStatusNEW) {
