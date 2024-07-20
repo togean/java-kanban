@@ -6,9 +6,8 @@ import models.Task;
 import models.TaskStatus;
 import models.StandardTask;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -18,6 +17,17 @@ public class InMemoryTaskManager implements TaskManager {
     private Integer taskID = 1;
 
     HistoryManager managerForHistory = Managers.getDefaultHistory();
+
+    TaskComparator taskComporator = new TaskComparator();//Компоратор для сравнения задачек по времени их начала
+    private final TreeSet<Task> sortedListOfTasksByDateTime = new TreeSet<>(taskComporator);//Создаём сортированный список всех задачек
+
+    public TreeSet<Task> getPrioritizedTasks() {
+        sortedListOfTasksByDateTime.clear();//Что бы небыло дубляжа при создании отсортированного списка, очищаем старое наполнение
+        sortedListOfTasksByDateTime.addAll(listOfStandardTasks.values());
+        sortedListOfTasksByDateTime.addAll(listOfSubtasks.values());
+        sortedListOfTasksByDateTime.addAll(listOfEpics.values());
+        return this.sortedListOfTasksByDateTime;
+    }
 
     public List<SubTask> getListOfSubTasks() {
         return new ArrayList<>(listOfSubtasks.values());
@@ -37,43 +47,55 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Integer createTask(StandardTask taskToBeCreated) {
-        int createdTaskID;
-        taskToBeCreated.setId(taskID);
-        listOfStandardTasks.put(taskID, taskToBeCreated);
-        createdTaskID = taskID;
-        taskID++;
+        int createdTaskID = 0;
+        if (!checkTasksOverlapping(taskToBeCreated)) {
+            taskToBeCreated.setId(taskID);
+            listOfStandardTasks.put(taskID, taskToBeCreated);
+            createdTaskID = taskID;
+            taskID++;
+        } else {
+            System.out.println("Обнаружено пересечение с другой задачей");
+        }
         return createdTaskID;
     }
 
     @Override
     public Integer createSubtask(SubTask taskToBeCreated) {
         int createdTaskID = 0;
-        Integer subtaskID = taskID;
-        taskToBeCreated.setId(subtaskID);
-        int parentID = taskToBeCreated.getParentID();
-        if (!listOfSubtasks.containsKey(parentID)) {
-            Epic epicToBeLinkedWithSubtask = listOfEpics.get(taskToBeCreated.getParentID());
-            if (epicToBeLinkedWithSubtask != null) {
-                listOfSubtasks.put(subtaskID, taskToBeCreated);
-                ArrayList<Integer> listOfEpicsSubtasksToBeUpdated = epicToBeLinkedWithSubtask.getListOfSubtasks();
-                listOfEpicsSubtasksToBeUpdated.add(subtaskID);
-                epicToBeLinkedWithSubtask.setListOfTasks(listOfEpicsSubtasksToBeUpdated);
-                listOfEpics.put(taskToBeCreated.getParentID(), epicToBeLinkedWithSubtask);
-                createdTaskID = taskID;
-                taskID++;
+        if (!checkTasksOverlapping(taskToBeCreated)) {
+            Integer subtaskID = taskID;
+            taskToBeCreated.setId(subtaskID);
+            int parentID = taskToBeCreated.getParentID();
+            if (!listOfSubtasks.containsKey(parentID)) {
+                Epic epicToBeLinkedWithSubtask = listOfEpics.get(taskToBeCreated.getParentID());
+                if (epicToBeLinkedWithSubtask != null) {
+                    listOfSubtasks.put(subtaskID, taskToBeCreated);
+                    ArrayList<Integer> listOfEpicsSubtasksToBeUpdated = epicToBeLinkedWithSubtask.getListOfSubtasks();
+                    listOfEpicsSubtasksToBeUpdated.add(subtaskID);
+                    epicToBeLinkedWithSubtask.setListOfTasks(listOfEpicsSubtasksToBeUpdated);
+                    listOfEpics.put(taskToBeCreated.getParentID(), epicToBeLinkedWithSubtask);
+                    createdTaskID = taskID;
+                    taskID++;
+                }
+                recalculateOrUpdateTaskStatus();
             }
-            recalculateOrUpdateTaskStatus();
+        } else {
+            System.out.println("Обнаружено пересечение с другой задачей");
         }
         return createdTaskID;
     }
 
     @Override
     public Integer createEpic(Epic taskToBeCreated) {
-        int createdTaskID;
-        taskToBeCreated.setId(taskID);
-        listOfEpics.put(taskID, taskToBeCreated);
-        createdTaskID = taskID;
-        taskID++;
+        int createdTaskID = 0;
+        if (!checkTasksOverlapping(taskToBeCreated)) {
+            taskToBeCreated.setId(taskID);
+            listOfEpics.put(taskID, taskToBeCreated);
+            createdTaskID = taskID;
+            taskID++;
+        } else {
+            System.out.println("Обнаружено пересечение с другой задачей");
+        }
         return createdTaskID;
     }
 
@@ -87,7 +109,9 @@ public class InMemoryTaskManager implements TaskManager {
             epicToBeUnLinkedWithDeletedSubtask.setListOfTasks(listOfEpicsSubtasks);
             listOfEpics.put(epicToBeUnLinkedWithDeletedSubtask.getId(), epicToBeUnLinkedWithDeletedSubtask);
             listOfSubtasks.remove(taskToBeDeleted);
+            recalculateOrUpdateTaskStatus();
             managerForHistory.remove(taskToBeDeleted);
+            sortedListOfTasksByDateTime.remove(subtaskToBeDeleted);
         }
     }
 
@@ -95,8 +119,9 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTask(Integer taskToBeDeleted) {
         StandardTask standardtaskToBeDeleted = listOfStandardTasks.get(taskToBeDeleted);
         if (standardtaskToBeDeleted != null) {
-            listOfStandardTasks.remove(taskToBeDeleted);
+            listOfStandardTasks.remove(standardtaskToBeDeleted.getId());
             managerForHistory.remove(taskToBeDeleted);
+            sortedListOfTasksByDateTime.remove(standardtaskToBeDeleted);
         }
     }
 
@@ -107,24 +132,22 @@ public class InMemoryTaskManager implements TaskManager {
             ArrayList<Integer> listOfSubtasksToBeDeleted;
             listOfSubtasksToBeDeleted = epicToBeDeleted.getListOfSubtasks();
             if (listOfSubtasksToBeDeleted != null) {
-                for (int i : listOfSubtasksToBeDeleted) {
+                listOfSubtasksToBeDeleted.forEach(i -> {
+                    sortedListOfTasksByDateTime.remove(listOfSubtasks.get(i));
                     listOfSubtasks.remove(i);
                     managerForHistory.remove(taskToBeDeleted);
-                }
+                });
             }
             listOfEpics.remove(taskToBeDeleted);
             managerForHistory.remove(taskToBeDeleted);
+            sortedListOfTasksByDateTime.remove(epicToBeDeleted);
         }
     }
 
     @Override
     public void deleteAll() {
-        for (int i = 0; i < listOfEpics.size(); i++) {
-            deleteEpic(i);
-        }
-        for (int i = 0; i < listOfStandardTasks.size(); i++) {
-            deleteTask(i);
-        }
+        listOfEpics.forEach((number, epic) -> deleteEpic(number));
+        listOfStandardTasks.forEach((number, task) -> deleteTask(number));
     }
 
     @Override
@@ -192,10 +215,10 @@ public class InMemoryTaskManager implements TaskManager {
         if (epicToGetList != null) {
             listOfSubtasksIDs = epicToGetList.getListOfSubtasks();
             if (listOfSubtasksIDs != null) {
-                for (Integer i : listOfSubtasksIDs) {
+                listOfSubtasksIDs.forEach(i -> {
                     SubTask subtaskToCheckTheirParentId = listOfSubtasks.get(i);
                     listOfSubtasksForEPIC.add(subtaskToCheckTheirParentId);
-                }
+                });
             }
         }
         return listOfSubtasksForEPIC;
@@ -209,58 +232,78 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public ArrayList<SubTask> getAllSubtasks() {
         ArrayList<SubTask> result = new ArrayList<>();
-        for (SubTask task : listOfSubtasks.values()) {
-            result.add(task);
-        }
+        result.addAll(listOfSubtasks.values());
         return result;
     }
 
     @Override
     public ArrayList<Epic> getAllEpics() {
         ArrayList<Epic> result = new ArrayList<>();
-        for (Epic epic : listOfEpics.values()) {
-            result.add(epic);
-        }
+        result.addAll(listOfEpics.values());
         return result;
     }
 
     @Override
     public ArrayList<Task> getAllTasks() {
         ArrayList<Task> result = new ArrayList<>();
-        for (Task task : listOfStandardTasks.values()) {
-            result.add(task);
-        }
+        result.addAll(listOfStandardTasks.values());
         return result;
     }
 
     private void recalculateOrUpdateTaskStatus() {
-        for (Integer i : listOfEpics.keySet()) {
-            Epic currentRecalculatedEpic = listOfEpics.get(i);
-            int numberOfSubtsaksInEpic = currentRecalculatedEpic.getListOfSubtasks().size();
-            int numberOfNew = 0; //Кол-во подзадач статуса New
-            int numberOfDone = 0; //Кол-во подзадач статуса DONE
-            ArrayList<Integer> listOfEpicSubtasks = listOfEpics.get(i).getListOfSubtasks();//Тут будут ID-шники подзадач текущего эпика
-            for (int j = 1; j < numberOfSubtsaksInEpic; j++) {
-                SubTask currentSubtaskToCalculateStatus = listOfSubtasks.get(j);
-                if (currentSubtaskToCalculateStatus != null) {
-                    if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.NEW)) {
-                        numberOfNew++;
+        listOfEpics.values().stream()
+                .peek(epic -> {
+                    int numberOfSubTasks = epic.getListOfSubtasks().size();
+                    int listOfSubTasksWithStatusDONE = 0;
+                    int listOfSubTasksWithStatusNEW = 0;
+                    Optional<SubTask> subtaskWithEarlieStartTime = Optional.empty();
+                    Optional<SubTask> subtaskWithLatestStartTime = Optional.empty();
+                    for (int i : epic.getListOfSubtasks()) {
+                        listOfSubTasksWithStatusDONE = listOfSubTasksWithStatusDONE + listOfSubtasks.values().stream()
+                                .filter(subtask -> subtask.getId().equals(i))
+                                .filter(subtask -> subtask.getTaskStatus().equals(TaskStatus.DONE))
+                                .toList().size();
+                        listOfSubTasksWithStatusNEW = listOfSubTasksWithStatusNEW + listOfSubtasks.values().stream()
+                                .filter(subtask -> subtask.getId().equals(i))
+                                .filter(subtask -> subtask.getTaskStatus().equals(TaskStatus.NEW))
+                                .toList().size();
+                        subtaskWithEarlieStartTime = listOfSubtasks.values().stream()
+                                .min(taskComporator);
+                        subtaskWithLatestStartTime = listOfSubtasks.values().stream()
+                                .max(taskComporator);
                     }
-                    if ((currentSubtaskToCalculateStatus.getTaskStatus()).equals(TaskStatus.DONE)) {
-                        numberOfDone++;
+
+                    if (subtaskWithEarlieStartTime.isPresent()) {
+                        epic.setStartDateTime(subtaskWithEarlieStartTime.get().getStartDateTime());
                     }
-                }
+                    if (subtaskWithLatestStartTime.isPresent()) {
+                        epic.setEndTime(subtaskWithLatestStartTime.get().getStartDateTime().plusMinutes(subtaskWithLatestStartTime.get().getDuration().toMinutes()));
+                    }
+                    if (numberOfSubTasks == listOfSubTasksWithStatusDONE) {
+                        epic.setTaskStatus(TaskStatus.DONE);
+                    } else if (numberOfSubTasks == listOfSubTasksWithStatusNEW) {
+                        epic.setTaskStatus(TaskStatus.NEW);
+                    } else {
+                        epic.setTaskStatus(TaskStatus.IN_PROGRESS);
+                    }
+                })
+                .collect(Collectors.toList());
+
+    }
+
+    public boolean checkTasksOverlapping(Task taskToCheck) {
+        boolean result = false;
+        for (Task taskToCompare : sortedListOfTasksByDateTime) {
+            if (taskToCheck.getStartDateTime().isBefore(taskToCompare.getStartDateTime()) && taskToCheck.calculateTaskEndDateTime().isAfter(taskToCompare.getStartDateTime())) {
+                result = true;
             }
-            if (numberOfNew == listOfEpicSubtasks.size() - 1) { //Тут -1 т.к. при инициализации эпика перое значение в списке подзадач 0 (но 0 не используется, все ID начинаются с 1)
-                currentRecalculatedEpic.setTaskStatus(TaskStatus.NEW);
-                listOfEpics.put(i, currentRecalculatedEpic);
-            } else if (numberOfDone == listOfEpicSubtasks.size() - 1) {
-                currentRecalculatedEpic.setTaskStatus(TaskStatus.DONE);
-                listOfEpics.put(i, currentRecalculatedEpic);
-            } else {
-                currentRecalculatedEpic.setTaskStatus(TaskStatus.IN_PROGRESS);
-                listOfEpics.put(i, currentRecalculatedEpic);//Сохраняем вычисленное значение родительской задачи
+            if (taskToCheck.getStartDateTime().isBefore(taskToCompare.getStartDateTime()) && taskToCheck.calculateTaskEndDateTime().isAfter(taskToCompare.calculateTaskEndDateTime())) {
+                result = true;
+            }
+            if (taskToCompare.calculateTaskEndDateTime().isAfter(taskToCheck.getStartDateTime()) && taskToCompare.getStartDateTime().isBefore(taskToCheck.getStartDateTime())) {
+                result = true;
             }
         }
+        return result;
     }
 }

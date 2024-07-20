@@ -1,15 +1,46 @@
 package models;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public abstract class Task {
+
+
     private String description;
     private String details;
     private TaskStatus taskStatus;
-
+    private Duration duration;
+    private LocalDateTime startDateTime;
     private Integer id;
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
-    public Task(String description, String details) {
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartDateTime() {
+        return startDateTime;
+    }
+
+    public void setStartDateTime(LocalDateTime startDateTime) {
+        this.startDateTime = startDateTime;
+    }
+
+
+    public LocalDateTime calculateTaskEndDateTime() {
+        return startDateTime.plusMinutes(duration.toMinutes());
+    }
+
+    public Task(String description, String details, LocalDateTime taskStartDate, Duration taskDuration) {
+
+        this.startDateTime = taskStartDate;
+        this.duration = taskDuration;
         this.description = description;
         this.details = details;
         this.taskStatus = TaskStatus.NEW;
@@ -17,6 +48,10 @@ public abstract class Task {
 
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public TaskStatus getTaskStatus() {
@@ -35,9 +70,6 @@ public abstract class Task {
         this.details = details;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     public Integer getId() {
         return id;
@@ -67,6 +99,8 @@ public abstract class Task {
                 ", details='" + details + '\'' +
                 ", status='" + taskStatus + '\'' +
                 ", id=" + id +
+                ", startDate=" + startDateTime.format(DATE_TIME_FORMATTER) +
+                ", duration=" + duration.toMinutes() +
                 '}';
     }
 }

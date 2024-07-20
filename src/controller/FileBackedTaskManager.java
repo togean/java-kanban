@@ -3,6 +3,8 @@ package controller;
 import exceptions.FileToSaveTasksNotFound;
 import models.*;
 import java.io.*;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
     static String fileName;
@@ -16,17 +18,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         File file = new File(filename);
         try (Writer writer = new FileWriter(file, false)) {
-            writer.write("id,type,name,status,description,epic\n");
+            writer.write("id,type,name,status,description,epic,start,duration\n");
             for (Task task : super.getListOfStandardTasks()) {
-                writer.write(task.getId() + "," + TaskTypes.TASK + "," + task.getDescription() + "," + task.getTaskStatus() + "," + task.getDetails() + ",TASK\n");
+                writer.write(task.getId() + "," + TaskTypes.TASK + "," + task.getDescription() + "," + task.getTaskStatus() + "," + task.getDetails() + ",TASK," + task.getStartDateTime() + "," + task.getDuration() + "\n");
             }
             for (Epic epic : super.getListOfEpics()) {
-                writer.write(epic.getId() + "," + TaskTypes.EPIC + "," + epic.getDescription() + "," + epic.getTaskStatus() + "," + epic.getDetails() + ",EPIC\n");
+                writer.write(epic.getId() + "," + TaskTypes.EPIC + "," + epic.getDescription() + "," + epic.getTaskStatus() + "," + epic.getDetails() + ",EPIC," + epic.getStartDateTime() + "," + epic.getDuration() + "\n");
             }
             for (SubTask subtask : super.getListOfSubTasks()) {
-                writer.write(subtask.getId() + "," + TaskTypes.SUBTASK + "," + subtask.getDescription() + "," + subtask.getTaskStatus() + "," + subtask.getDetails() + "," + subtask.getParentID() + "\n");
+                writer.write(subtask.getId() + "," + TaskTypes.SUBTASK + "," + subtask.getDescription() + "," + subtask.getTaskStatus() + "," + subtask.getDetails() + "," + subtask.getParentID() + "," + subtask.getStartDateTime() + "," + subtask.getDuration() + "\n");
             }
-
         } catch (FileNotFoundException ex) {
             throw new FileToSaveTasksNotFound("Файл " + this.fileName + " не найден");
         } catch (IOException ex) {
@@ -54,15 +55,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private void createTaskFromString(String line) {
         String[] partsOfLine = line.split(",");
         if (partsOfLine[1].equals("TASK")) {
-            StandardTask loadeStandardtask = new StandardTask(partsOfLine[2], partsOfLine[4]);
+            StandardTask loadeStandardtask = new StandardTask(partsOfLine[2], partsOfLine[4], LocalDateTime.parse(partsOfLine[6]), Duration.parse(partsOfLine[7]));
             super.createTask(loadeStandardtask);
         } else if (partsOfLine[1].equals("EPIC")) {
-            Epic loadeEpic = new Epic(partsOfLine[2], partsOfLine[4]);
+            Epic loadeEpic = new Epic(partsOfLine[2], partsOfLine[4], LocalDateTime.parse(partsOfLine[6]), Duration.parse(partsOfLine[7]));
             super.createEpic(loadeEpic);
         } else if (partsOfLine[1].equals("SUBTASK")) {
-            SubTask loadedSubTask = new SubTask(partsOfLine[2], partsOfLine[4], Integer.parseInt(partsOfLine[5]));
+            SubTask loadedSubTask = new SubTask(partsOfLine[2], partsOfLine[4], Integer.parseInt(partsOfLine[5]), LocalDateTime.parse(partsOfLine[6]), Duration.parse(partsOfLine[7]));
             super.createSubtask(loadedSubTask);
         }
+        getPrioritizedTasks();//Если были сохранённые задачи, созаём их сорированный список
     }
 
     @Override
@@ -106,12 +108,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     @Override
     public void deleteAll() {
-        for (int i = 0; i < super.getListOfEpics().size(); i++) {
-            deleteEpic(i);
-        }
-        for (int i = 0; i < super.getListOfStandardTasks().size(); i++) {
-            deleteTask(i);
-        }
+        super.getListOfEpics().forEach(epic -> deleteEpic(epic.getId()));
+        super.getListOfStandardTasks().forEach(task -> deleteTask(task.getId()));
         save(fileName);
     }
 

@@ -1,1 +1,4 @@
-id,type,name,status,description,epic
+id,type,name,status,description,epic,start,duration
+2,EPIC,e1,IN_PROGRESS,e1,EPIC,2024-07-20T12:00,PT1M
+3,SUBTASK,sub1,DONE,updated sub,2,2024-07-20T12:00,PT1H
+4,SUBTASK,sub2,NEW,sub2,2,2024-07-21T20:00,PT30M
