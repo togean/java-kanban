@@ -18,7 +18,7 @@ public class SubTask extends Task {
 
     @Override
     public String toString() {
-        return "models.SubTask{" +
+        return "SubTask{" +
                 "description='" + super.getDescription() + '\'' +
                 ", status='" + super.getTaskStatus() + '\'' +
                 ", details='" + super.getDetails() + '\'' +

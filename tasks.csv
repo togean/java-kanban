@@ -1,4 +1,6 @@
 id,type,name,status,description,epic,start,duration
-2,EPIC,e1,IN_PROGRESS,e1,EPIC,2024-07-20T12:00,PT1M
-3,SUBTASK,sub1,DONE,updated sub,2,2024-07-20T12:00,PT1H
-4,SUBTASK,sub2,NEW,sub2,2,2024-07-21T20:00,PT30M
+1,TASK,Задача 1,NEW,Задача 1,TASK,2024-07-12T09:00,PT1H30M
+2,EPIC,Эпик 1,NEW,Эпик 1,EPIC,2024-07-15T14:30,PT1M
+3,EPIC,Эпик 2,NEW,Эпик 2 Обновлённый,EPIC,2024-07-15T14:30,PT1M
+4,SUBTASK,Подзадача 1,NEW,Подзадача 1,2,2024-07-15T14:30,PT1H30M
+5,SUBTASK,Подзадача 2,NEW,Подзадача 2,3,2024-08-24T18:15,PT3H
