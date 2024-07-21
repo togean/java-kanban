@@ -32,10 +32,6 @@ public class TasksHandler extends BasicRequestHandler implements HttpHandler {
         this.taskManager = manager;
     }
 
-    static class UserTypeToken extends TypeToken<StandardTask> {
-        // здесь ничего не нужно реализовывать
-    }
-
     @Override
     public void handle(HttpExchange exchange) throws IOException {
 
@@ -100,4 +96,7 @@ public class TasksHandler extends BasicRequestHandler implements HttpHandler {
 
     }
 
+    static class UserTypeToken extends TypeToken<StandardTask> {
+        // здесь ничего не нужно реализовывать
+    }
 }

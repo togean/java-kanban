@@ -15,10 +15,17 @@ import java.util.Optional;
 
 public class BasicRequestHandler {
 
+    private static final int OK_CODE = 200;
+    private static final int OK_WITHOUT_ANSWER_CODE = 201;
+
+    private static final int SERVER_SIDE_ERROR_CODE = 500;
+    private static final int NOT_FOUND_CODE = 404;
+    private static final int TASKS_INTERACTION_CODE = 406;
+
     protected void sendText(HttpExchange exchange, String text) throws IOException {
         byte[] responseBytes = text.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
-        exchange.sendResponseHeaders(200, responseBytes.length);
+        exchange.sendResponseHeaders(OK_CODE, responseBytes.length);
         exchange.getResponseBody().write(responseBytes);
         exchange.close();
     }
@@ -26,7 +33,7 @@ public class BasicRequestHandler {
     protected void sendTextUpdated(HttpExchange exchange, String text) throws IOException {
         byte[] responseBytes = text.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
-        exchange.sendResponseHeaders(201, responseBytes.length);
+        exchange.sendResponseHeaders(OK_WITHOUT_ANSWER_CODE, responseBytes.length);
         exchange.getResponseBody().write(responseBytes);
         exchange.close();
     }
@@ -34,7 +41,7 @@ public class BasicRequestHandler {
     protected void sendServerError(HttpExchange exchange, String text) throws IOException {
         byte[] responseBytes = text.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
-        exchange.sendResponseHeaders(500, responseBytes.length);
+        exchange.sendResponseHeaders(SERVER_SIDE_ERROR_CODE, responseBytes.length);
         exchange.getResponseBody().write(responseBytes);
         exchange.close();
     }
@@ -42,7 +49,7 @@ public class BasicRequestHandler {
     protected void sendNotFound(HttpExchange exchange, String text) throws IOException {
         byte[] responseBytes = text.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
-        exchange.sendResponseHeaders(404, responseBytes.length);
+        exchange.sendResponseHeaders(NOT_FOUND_CODE, responseBytes.length);
         exchange.getResponseBody().write(responseBytes);
         exchange.close();
     }
@@ -50,7 +57,7 @@ public class BasicRequestHandler {
     protected void sendHasInteraction(HttpExchange exchange, String text) throws IOException {
         byte[] responseBytes = text.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().add("Content-Type", "application/json;charset=utf-8");
-        exchange.sendResponseHeaders(406, responseBytes.length);
+        exchange.sendResponseHeaders(TASKS_INTERACTION_CODE, responseBytes.length);
         exchange.getResponseBody().write(responseBytes);
         exchange.close();
     }
@@ -110,7 +117,6 @@ public class BasicRequestHandler {
         public TaskStatus read(final JsonReader jsonReader) throws IOException {
             String s = jsonReader.nextString();
             return TaskStatus.valueOf(s);
-            // return TaskStatus.valueOf(jsonReader.nextString());
         }
     }
 }

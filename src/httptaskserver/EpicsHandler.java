@@ -31,9 +31,6 @@ public class EpicsHandler extends BasicRequestHandler implements HttpHandler {
         this.taskManager = manager;
     }
 
-    static class UserTypeToken extends TypeToken<Epic> {
-        // здесь ничего не нужно реализовывать
-    }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -108,4 +105,7 @@ public class EpicsHandler extends BasicRequestHandler implements HttpHandler {
 
     }
 
+    static class UserTypeToken extends TypeToken<Epic> {
+        // здесь ничего не нужно реализовывать
+    }
 }

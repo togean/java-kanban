@@ -29,9 +29,6 @@ public class SubTasksHandler extends BasicRequestHandler implements HttpHandler 
         this.taskManager = manager;
     }
 
-    static class UserTypeToken extends TypeToken<SubTask> {
-        // здесь ничего не нужно реализовывать
-    }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
@@ -93,5 +90,9 @@ public class SubTasksHandler extends BasicRequestHandler implements HttpHandler 
         } else {
             sendText(exchange, "Такого метода для работы с подзадачами нету");
         }
+    }
+
+    static class UserTypeToken extends TypeToken<SubTask> {
+        // здесь ничего не нужно реализовывать
     }
 }
