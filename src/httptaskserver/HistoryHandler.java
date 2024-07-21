@@ -15,22 +15,24 @@ import java.util.List;
 
 public class HistoryHandler extends BasicRequestHandler implements HttpHandler {
     TaskManager taskManager;
-    private Gson gson= new GsonBuilder()
+    private Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
             .registerTypeAdapter(Duration.class, new DurationAdapter())
             .create();
+
     public HistoryHandler(InMemoryTaskManager manager) {
-        this.taskManager=manager;
+        this.taskManager = manager;
     }
+
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if("GET".equals(exchange.getRequestMethod())){
+        if ("GET".equals(exchange.getRequestMethod())) {
             List<Task> tasksInHistory = taskManager.getHistory();
             String tasksInHistorySerialized = gson.toJson(tasksInHistory);
             sendText(exchange, tasksInHistorySerialized);
-        }else{
-            sendText(exchange,"Такого метода для вывода истории обращения задач нету");
+        } else {
+            sendText(exchange, "Такого метода для вывода истории обращения задач нету");
         }
     }
 }
