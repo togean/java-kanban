@@ -1,5 +1,4 @@
 id,type,name,status,description,epic,start,duration
-1,TASK,Задача 1,NEW,Задача 1,TASK,2024-07-12T09:00,PT1H30M
 2,EPIC,Эпик 1,NEW,Эпик 1,EPIC,2024-07-15T14:30,PT1M
 3,EPIC,Эпик 2,NEW,Эпик 2 Обновлённый,EPIC,2024-07-15T14:30,PT1M
 4,SUBTASK,Подзадача 1,NEW,Подзадача 1,2,2024-07-15T14:30,PT1H30M

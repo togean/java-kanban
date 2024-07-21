@@ -197,7 +197,65 @@ class TaskTest {
         }
         assertEquals(newTask, tasksFromServerResponse.get(0));
     }
+    @Test
+    void testToDELETETaskOnServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.25", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        StandardTask newTask = new StandardTask("task1", "task1 details", taskStartDate, taskDuration);
+        newTask.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании задачи, а у нас тут его выставляем руками
+        String gsonForPOSTTaskRequest = gson.toJson(newTask, StandardTask.class);
+        //Для проверки обнуляем список задач
+        managerForInMemoryTasks.deleteAll();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/tasks");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTTaskRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на удаление задачи
+        url = URI.create("http://localhost:8080/tasks/1");
+        request = HttpRequest.newBuilder().uri(url).DELETE().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на получение удалённой задачи
+        url = URI.create("http://localhost:8080/tasks/1");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+        assertEquals(404, response.statusCode(), "Удаления задачи не произошло");
+    }
+
+    @Test
+    void testToDELETEEpicOnServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.25", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        Epic newEpic = new Epic("task1", "task1 details", taskStartDate, taskDuration);
+        newEpic.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании эпика, а у нас тут его выставляем руками
+        String gsonForPOSTTaskRequest = gson.toJson(newEpic, StandardTask.class);
+        //Для проверки обнуляем список задач
+        managerForInMemoryTasks.deleteAll();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/epics");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTTaskRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на удаление задачи
+        url = URI.create("http://localhost:8080/epics/1");
+        request = HttpRequest.newBuilder().uri(url).DELETE().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на получение удалённой задачи
+        url = URI.create("http://localhost:8080/epics/1");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, response.statusCode(), "Удаления эпика не произошло");
+    }
     @Test
     void testToPOSTEpicToServer() throws IOException, InterruptedException {
         //Создаю тестовую задачу
@@ -343,7 +401,6 @@ class TaskTest {
         request1 = HttpRequest.newBuilder().uri(url).GET().build();
         HttpResponse<String> response3 = client.send(request1, HttpResponse.BodyHandlers.ofString());
         List<StandardTask> prioritizedTasksFromServerResponse = null;
-        System.out.println("вторая задача должна быть на первом месте: " + response3.body());
         if (response3.statusCode() == 200) {
             prioritizedTasksFromServerResponse = gson.fromJson(response3.body(), new TypeToken<List<StandardTask>>() {
             }.getType());
