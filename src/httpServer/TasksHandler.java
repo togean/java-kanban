@@ -1,4 +1,4 @@
-package HttpServer;
+package httpServer;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -7,7 +7,9 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import controller.InMemoryTaskManager;
 import controller.TaskManager;
-import models.*;
+import models.StandardTask;
+import models.Task;
+import models.TaskStatus;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +18,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
 
-public class SubTasksHandler extends BasicRequestHandler implements HttpHandler {
+
+public class TasksHandler extends BasicRequestHandler implements HttpHandler {
     TaskManager taskManager;
     private Gson gson = new GsonBuilder()
             .setPrettyPrinting()
@@ -25,73 +28,76 @@ public class SubTasksHandler extends BasicRequestHandler implements HttpHandler 
             .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
             .create();
 
-    public SubTasksHandler(InMemoryTaskManager manager) {
+    public TasksHandler(InMemoryTaskManager manager) {
         this.taskManager = manager;
     }
 
-    static class UserTypeToken extends TypeToken<SubTask> {
+    static class UserTypeToken extends TypeToken<StandardTask> {
         // здесь ничего не нужно реализовывать
     }
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
+
         if ("GET".equals(exchange.getRequestMethod())) {
-            Optional<Integer> subtaskId = getTaskId(exchange);
+            Optional<Integer> taskId = getTaskId(exchange);
             //Проверяем, запрашивают ли задачу по ID или идёт запрос всех задач
-            if (subtaskId.isPresent()) {
+            if (taskId.isPresent()) {
                 //Запрашивают по ID
-                SubTask requestedSubTask = taskManager.getSubTask(subtaskId.get());
-                if (requestedSubTask == null) {
-                    sendNotFound(exchange, "Подзадачи с таким ID нету");
+                StandardTask requestedTask = taskManager.getTask(taskId.get());
+                if (requestedTask == null) {
+                    sendNotFound(exchange, "Задачи с таким ID нету");
                 } else {
-                    String requestedSubTaskSerialized = gson.toJson(requestedSubTask);
-                    sendText(exchange, requestedSubTaskSerialized);
+                    String taskSerialized = gson.toJson(requestedTask);
+                    sendText(exchange, taskSerialized);
                 }
             } else {
                 //Если нет ID, то выводим весь список
-                ArrayList<SubTask> listOfSubTasks = taskManager.getAllSubtasks();
-                String listOfSubTasksSerialized = gson.toJson(listOfSubTasks);
-                sendText(exchange, listOfSubTasksSerialized);
+                ArrayList<Task> listOfStandardTasks = taskManager.getAllTasks();
+                String taskSerialized = gson.toJson(listOfStandardTasks);
+                sendText(exchange, taskSerialized);
             }
 
         } else if ("POST".equals(exchange.getRequestMethod())) {
             String requestBody = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            Optional<Integer> subtaskId = getTaskId(exchange);
-            SubTask subtaskToBeCreated = gson.fromJson(requestBody, new UserTypeToken().getType());
-            if (subtaskId.isPresent()) {
+            Optional<Integer> taskId = getTaskId(exchange);
+            StandardTask taskToBeCreated = gson.fromJson(requestBody, new UserTypeToken().getType());
+            if (taskId.isPresent()) {
                 //Если ID указан, то обновляем задачу с указанным ID
                 try {
-                    taskManager.updateSubtask(subtaskId.get(), subtaskToBeCreated.getDetails(), subtaskToBeCreated.getTaskStatus());
+                    taskManager.updateTask(taskId.get(), taskToBeCreated.getDetails(), taskToBeCreated.getTaskStatus());
                 } catch (Exception ex) {
                     sendServerError(exchange, "Произошла ошибка на сервере. Возможно, вы ошиблись в списке параметров в запросе.");
                 }
-                sendTextUpdated(exchange, "Существующая подзадача успешно обновлена");
+                sendTextUpdated(exchange, "Существующая задача успешно обновлена");
             } else {
                 //Если ID не указан, то создаём новую задачу
-                Integer createdSubTaskID = 0;
+                Integer createdTaskID = 0;
                 try {
-                    createdSubTaskID = taskManager.createSubtask(subtaskToBeCreated);
+                    createdTaskID = taskManager.createTask(taskToBeCreated);
                 } catch (Exception ex) {
                     sendServerError(exchange, "Произошла ошибка на сервере. Возможно, вы ошиблись в списке параметров в запросе.");
                 }
-                if (createdSubTaskID == 0) {
-                    sendHasInteraction(exchange, "Создаваемая подзадача пересекается с уже существующей");
+                if (createdTaskID == 0) {
+                    sendHasInteraction(exchange, "Создаваемая задача пересекается с уже существующей");
                 } else {
-                    sendText(exchange, "Новая подзадача успешно создана");
+                    sendText(exchange, "Новая задача успешно создана");
                 }
             }
         } else if ("DELETE".equals(exchange.getRequestMethod())) {
-            Optional<Integer> subtaskId = getTaskId(exchange);
-            if (subtaskId.isPresent()) {
+            Optional<Integer> taskId = getTaskId(exchange);
+            if (taskId.isPresent()) {
                 //Запрашивают удаление по ID
-                taskManager.deleteSubtask(subtaskId.get());
-                sendText(exchange, "Операция удаления отдельной подзадачи выполнена успешно");
+                taskManager.deleteTask(taskId.get());
+                sendText(exchange, "Операция удаления отдельной задачи выполнена успешно");
             } else {
                 //Хотят удалить все задачи
-                sendText(exchange, "Операция удаления всех подзадач сразу не предусмотрена");
+                sendText(exchange, "Операция удаления всех задач сразу не предусмотрена");
             }
         } else {
-            sendText(exchange, "Такого метода для работы с подзадачами нету");
+            sendText(exchange, "Такого метода нет на сервере");
         }
+
     }
+
 }

@@ -1,4 +1,4 @@
-package HttpServer;
+package httpServer;
 
 import com.sun.net.httpserver.HttpServer;
 import controller.FileBackedTaskManager;
