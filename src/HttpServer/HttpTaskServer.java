@@ -23,7 +23,7 @@ public class HttpTaskServer {
     }
 
     public static void stop(HttpServer server) {
-        server.stop(10);
+        server.stop(1);
     }
 
     public static void main(String[] args) throws IOException {
