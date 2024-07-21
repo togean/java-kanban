@@ -256,6 +256,51 @@ class TaskTest {
 
         assertEquals(404, response.statusCode(), "Удаления эпика не произошло");
     }
+
+    @Test
+    void testToDELETESubtaskToServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.24", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        Epic newEpic = new Epic("epic1", "epic1 details", taskStartDate, taskDuration);
+        newEpic.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании эпика, а у нас тут его выставляем руками
+        SubTask newSubTask = new SubTask("subtask1", "subtask1 details", 1, taskStartDate, taskDuration);
+        newSubTask.setId(2);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании подзадачи, а у нас тут его выставляем руками
+        String gsonForPOSTEpicRequest = gson.toJson(newEpic, Epic.class);
+        String gsonForSubtaskPOSTRequest = gson.toJson(newSubTask, SubTask.class);
+        //Создаём эпик для подзадачи
+        managerForInMemoryTasks.createEpic(newEpic);
+        //Создаём подзадачу
+        managerForInMemoryTasks.createSubtask(newSubTask);
+        //Сохраним созданную задачу в переменной для сравнения с тем, что выдаст нам сервер
+        List<SubTask> createdSubTasks = managerForInMemoryTasks.getAllSubtasks();
+        //Создаю клиента и формирую запрос к серверу на создание эпика
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/epics");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTEpicRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на создание подзадачи созданного эпика
+        client = HttpClient.newHttpClient();
+        url = URI.create("http://localhost:8080/subtasks");
+        request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForSubtaskPOSTRequest))
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на удаление задачи
+        url = URI.create("http://localhost:8080/subtasks/1");
+        request = HttpRequest.newBuilder().uri(url).DELETE().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на получение удалённой задачи
+        url = URI.create("http://localhost:8080/subtasks/1");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, response.statusCode(), "Удаления подзадачи не произошло");
+    }
     @Test
     void testToPOSTEpicToServer() throws IOException, InterruptedException {
         //Создаю тестовую задачу
