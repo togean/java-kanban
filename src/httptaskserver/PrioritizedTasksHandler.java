@@ -14,22 +14,24 @@ import java.util.TreeSet;
 
 public class PrioritizedTasksHandler extends BasicRequestHandler implements HttpHandler {
     InMemoryTaskManager taskManager;
-    private Gson gson= new GsonBuilder()
+    private Gson gson = new GsonBuilder()
             .setPrettyPrinting()
             .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
             .registerTypeAdapter(Duration.class, new DurationAdapter())
             .create();
+
     public PrioritizedTasksHandler(InMemoryTaskManager manager) {
-        this.taskManager=manager;
+        this.taskManager = manager;
     }
+
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        if("GET".equals(exchange.getRequestMethod())){
+        if ("GET".equals(exchange.getRequestMethod())) {
             TreeSet<Task> listOfPrioritizedTasks = taskManager.getPrioritizedTasks();
             String taskSerialized = gson.toJson(listOfPrioritizedTasks);
             sendText(exchange, taskSerialized);
-        }else{
-            sendText(exchange,"Такого метода для вывода задач в порядке приоритета нету");
+        } else {
+            sendText(exchange, "Такого метода для вывода задач в порядке приоритета нету");
         }
     }
 }
