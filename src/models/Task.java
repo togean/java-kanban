@@ -94,7 +94,7 @@ public abstract class Task {
 
     @Override
     public String toString() {
-        return "models.Task{" +
+        return "Task{" +
                 "description='" + description + '\'' +
                 ", details='" + details + '\'' +
                 ", status='" + taskStatus + '\'' +

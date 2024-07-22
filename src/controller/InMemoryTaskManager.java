@@ -72,7 +72,7 @@ public class InMemoryTaskManager implements TaskManager {
                     listOfSubtasks.put(subtaskID, taskToBeCreated);
                     ArrayList<Integer> listOfEpicsSubtasksToBeUpdated = epicToBeLinkedWithSubtask.getListOfSubtasks();
                     listOfEpicsSubtasksToBeUpdated.add(subtaskID);
-                    epicToBeLinkedWithSubtask.setListOfTasks(listOfEpicsSubtasksToBeUpdated);
+                    epicToBeLinkedWithSubtask.setListOfSubTasks(listOfEpicsSubtasksToBeUpdated);
                     listOfEpics.put(taskToBeCreated.getParentID(), epicToBeLinkedWithSubtask);
                     createdTaskID = taskID;
                     taskID++;
@@ -106,7 +106,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epicToBeUnLinkedWithDeletedSubtask = listOfEpics.get(subtaskToBeDeleted.getParentID());
             ArrayList<Integer> listOfEpicsSubtasks = epicToBeUnLinkedWithDeletedSubtask.getListOfSubtasks();
             listOfEpicsSubtasks.remove(subtaskToBeDeleted.getId());
-            epicToBeUnLinkedWithDeletedSubtask.setListOfTasks(listOfEpicsSubtasks);
+            epicToBeUnLinkedWithDeletedSubtask.setListOfSubTasks(listOfEpicsSubtasks);
             listOfEpics.put(epicToBeUnLinkedWithDeletedSubtask.getId(), epicToBeUnLinkedWithDeletedSubtask);
             listOfSubtasks.remove(taskToBeDeleted);
             recalculateOrUpdateTaskStatus();
@@ -301,6 +301,9 @@ public class InMemoryTaskManager implements TaskManager {
                 result = true;
             }
             if (taskToCompare.calculateTaskEndDateTime().isAfter(taskToCheck.getStartDateTime()) && taskToCompare.getStartDateTime().isBefore(taskToCheck.getStartDateTime())) {
+                result = true;
+            }
+            if (taskToCompare.getStartDateTime().equals(taskToCheck.getStartDateTime()) && (!taskToCompare.getClass().equals(Epic.class)) && (!taskToCheck.getClass().equals(SubTask.class))) {
                 result = true;
             }
         }

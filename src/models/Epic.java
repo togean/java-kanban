@@ -7,22 +7,24 @@ import java.util.ArrayList;
 
 public class Epic extends Task {
     ArrayList<Integer> listOfSubtasks = new ArrayList<>();
+    private LocalDateTime endTime;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
-
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
 
-    private LocalDateTime endTime;
-
     public ArrayList<Integer> getListOfSubtasks() {
         return listOfSubtasks;
     }
 
+    public void setListOfSubTasks(ArrayList<Integer> listOfSubTasks) {
+        this.listOfSubtasks = listOfSubTasks;
+    }
+
     @Override
     public String toString() {
-        return "models.Epic{" +
+        return "Epic{" +
                 "description='" + super.getDescription() + '\'' +
                 ", status='" + super.getTaskStatus() + '\'' +
                 ", details='" + super.getDetails() + '\'' +
@@ -34,9 +36,6 @@ public class Epic extends Task {
                 '}';
     }
 
-    public void setListOfTasks(ArrayList<Integer> listOfTasks) {
-        this.listOfSubtasks = listOfTasks;
-    }
 
     public Epic(String description, String details, LocalDateTime taskStartDate, Duration taskDuration) {
         super(description, details, taskStartDate, taskDuration);

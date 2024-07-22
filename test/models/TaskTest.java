@@ -1,15 +1,29 @@
 package models;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+import com.sun.net.httpserver.HttpServer;
 import controller.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static httptaskserver.HttpTaskServer.start;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,12 +34,423 @@ class TaskTest {
     Duration taskDuration;
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
 
+    static class LocalDateTimeAdapter extends TypeAdapter<LocalDateTime> {
+        private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm dd.MM.yy");
+
+        @Override
+        public void write(final JsonWriter jsonWriter, final LocalDateTime localDate) throws IOException {
+            jsonWriter.value(localDate.format(DATE_TIME_FORMATTER));
+        }
+
+        @Override
+        public LocalDateTime read(final JsonReader jsonReader) throws IOException {
+            return LocalDateTime.parse(jsonReader.nextString(), DATE_TIME_FORMATTER);
+        }
+    }
+
+    static class DurationAdapter extends TypeAdapter<Duration> {
+
+        @Override
+        public void write(final JsonWriter jsonWriter, final Duration duration) throws IOException {
+            jsonWriter.value(duration.toMinutes());
+        }
+
+        @Override
+        public Duration read(final JsonReader jsonReader) throws IOException {
+            return Duration.ofMinutes(Long.parseLong(jsonReader.nextString()));
+        }
+    }
+
+    static class TaskStatusAdapter extends TypeAdapter<TaskStatus> {
+
+        @Override
+        public void write(final JsonWriter jsonWriter, final TaskStatus taskStatus) throws IOException {
+            jsonWriter.value(taskStatus.name());
+        }
+
+        @Override
+        public TaskStatus read(final JsonReader jsonReader) throws IOException {
+            String s = jsonReader.nextString();
+            return TaskStatus.valueOf(s);
+            // return TaskStatus.valueOf(jsonReader.nextString());
+        }
+    }
+
+    private Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+            .registerTypeAdapter(Duration.class, new DurationAdapter())
+            .registerTypeAdapter(TaskStatus.class, new TaskStatusAdapter())
+            .create();
+
+    HttpServer httpServer = null;
+
     @BeforeEach
-    public void BeforeEach() {
+    public void BeforeEach() throws IOException {
         managerForInMemoryTasks = Managers.getDefault(null);
         managerForHistory = (InMemoryHistoryManager) Managers.getDefaultHistory();
+        httpServer = HttpServer.create();
+        start(httpServer, (InMemoryTaskManager) managerForInMemoryTasks);
+    }
 
+    @AfterEach
+    public void AfterEach() {
+        httpServer.stop(0);
+    }
 
+    @Test
+    void testToGetAllTasksFromServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.24", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        StandardTask newTask = new StandardTask("task1", "task1 details", taskStartDate, taskDuration);
+        managerForInMemoryTasks.createTask(newTask);
+        //Сохраним созданную задачу в переменной для сравнения с тем, что выдаст нам сервер
+        List<Task> createdTasks = managerForInMemoryTasks.getAllTasks();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/tasks");
+        HttpRequest request = HttpRequest.newBuilder().uri(url).GET().build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        List<Task> tasksFromServerResponse = null;
+        if (response.statusCode() == 200) {
+            tasksFromServerResponse = gson.fromJson(response.body(), new TypeToken<List<StandardTask>>() {
+            }.getType());
+        }
+        assertEquals(createdTasks, tasksFromServerResponse);
+    }
+
+    @Test
+    void testToGetAllEpicsFromServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.24", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        Epic newEpic = new Epic("epic1", "epic1 details", taskStartDate, taskDuration);
+        managerForInMemoryTasks.createEpic(newEpic);
+        //Сохраним созданную задачу в переменной для сравнения с тем, что выдаст нам сервер
+        List<Epic> createdEpics = managerForInMemoryTasks.getAllEpics();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/epics");
+        HttpRequest request = HttpRequest.newBuilder().uri(url).GET().build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        List<Epic> epicsFromServerResponse = null;
+        if (response.statusCode() == 200) {
+            epicsFromServerResponse = gson.fromJson(response.body(), new TypeToken<List<Epic>>() {
+            }.getType());
+        }
+        assertEquals(createdEpics, epicsFromServerResponse);
+    }
+
+    @Test
+    void testToGetAllSubtasksFromServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.24", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        Epic newEpic = new Epic("epic1", "epic1 details", taskStartDate, taskDuration);
+        SubTask newSubTask = new SubTask("subtask1", "subtask1 details", 1, taskStartDate, taskDuration);
+        //Создаём эпик для подзадачи
+        managerForInMemoryTasks.createEpic(newEpic);
+        //Создаём подзадачу
+        managerForInMemoryTasks.createSubtask(newSubTask);
+        //Сохраним созданную задачу в переменной для сравнения с тем, что выдаст нам сервер
+        List<SubTask> createdSubTasks = managerForInMemoryTasks.getAllSubtasks();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/subtasks");
+        HttpRequest request = HttpRequest.newBuilder().uri(url).GET().build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        List<SubTask> subtasksFromServerResponse = null;
+        if (response.statusCode() == 200) {
+            subtasksFromServerResponse = gson.fromJson(response.body(), new TypeToken<List<SubTask>>() {
+            }.getType());
+        }
+        assertEquals(createdSubTasks, subtasksFromServerResponse);
+    }
+
+    @Test
+    void testToPOSTTaskToServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.25", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        StandardTask newTask = new StandardTask("task1", "task1 details", taskStartDate, taskDuration);
+        newTask.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании задачи, а у нас тут его выставляем руками
+        String gsonForPOSTTaskRequest = gson.toJson(newTask, StandardTask.class);
+        //Для проверки обнуляем список задач
+        managerForInMemoryTasks.deleteAll();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/tasks");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTTaskRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер, что бы получить список задач
+        url = URI.create("http://localhost:8080/tasks");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        List<Task> tasksFromServerResponse = null;
+        if (response.statusCode() == 200) {
+            tasksFromServerResponse = gson.fromJson(response.body(), new TypeToken<List<StandardTask>>() {
+            }.getType());
+        }
+        assertEquals(newTask, tasksFromServerResponse.get(0));
+    }
+    @Test
+    void testToDELETETaskOnServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.25", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        StandardTask newTask = new StandardTask("task1", "task1 details", taskStartDate, taskDuration);
+        newTask.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании задачи, а у нас тут его выставляем руками
+        String gsonForPOSTTaskRequest = gson.toJson(newTask, StandardTask.class);
+        //Для проверки обнуляем список задач
+        managerForInMemoryTasks.deleteAll();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/tasks");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTTaskRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на удаление задачи
+        url = URI.create("http://localhost:8080/tasks/1");
+        request = HttpRequest.newBuilder().uri(url).DELETE().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на получение удалённой задачи
+        url = URI.create("http://localhost:8080/tasks/1");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, response.statusCode(), "Удаления задачи не произошло");
+    }
+
+    @Test
+    void testToDELETEEpicOnServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.25", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        Epic newEpic = new Epic("task1", "task1 details", taskStartDate, taskDuration);
+        newEpic.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании эпика, а у нас тут его выставляем руками
+        String gsonForPOSTTaskRequest = gson.toJson(newEpic, StandardTask.class);
+        //Для проверки обнуляем список задач
+        managerForInMemoryTasks.deleteAll();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/epics");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTTaskRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на удаление задачи
+        url = URI.create("http://localhost:8080/epics/1");
+        request = HttpRequest.newBuilder().uri(url).DELETE().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на получение удалённой задачи
+        url = URI.create("http://localhost:8080/epics/1");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, response.statusCode(), "Удаления эпика не произошло");
+    }
+
+    @Test
+    void testToDELETESubtaskToServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.24", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        Epic newEpic = new Epic("epic1", "epic1 details", taskStartDate, taskDuration);
+        newEpic.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании эпика, а у нас тут его выставляем руками
+        SubTask newSubTask = new SubTask("subtask1", "subtask1 details", 1, taskStartDate, taskDuration);
+        newSubTask.setId(2);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании подзадачи, а у нас тут его выставляем руками
+        String gsonForPOSTEpicRequest = gson.toJson(newEpic, Epic.class);
+        String gsonForSubtaskPOSTRequest = gson.toJson(newSubTask, SubTask.class);
+        //Создаём эпик для подзадачи
+        managerForInMemoryTasks.createEpic(newEpic);
+        //Создаём подзадачу
+        managerForInMemoryTasks.createSubtask(newSubTask);
+        //Сохраним созданную задачу в переменной для сравнения с тем, что выдаст нам сервер
+        List<SubTask> createdSubTasks = managerForInMemoryTasks.getAllSubtasks();
+        //Создаю клиента и формирую запрос к серверу на создание эпика
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/epics");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTEpicRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на создание подзадачи созданного эпика
+        client = HttpClient.newHttpClient();
+        url = URI.create("http://localhost:8080/subtasks");
+        request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForSubtaskPOSTRequest))
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на удаление задачи
+        url = URI.create("http://localhost:8080/subtasks/1");
+        request = HttpRequest.newBuilder().uri(url).DELETE().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер на получение удалённой задачи
+        url = URI.create("http://localhost:8080/subtasks/1");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        assertEquals(404, response.statusCode(), "Удаления подзадачи не произошло");
+    }
+    @Test
+    void testToPOSTEpicToServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.25", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        Epic newEpic = new Epic("task1", "task1 details", taskStartDate, taskDuration);
+        newEpic.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании эпика, а у нас тут его выставляем руками
+        String gsonForPOSTEpicRequest = gson.toJson(newEpic, Epic.class);
+        //Для проверки обнуляем список задач
+        managerForInMemoryTasks.deleteAll();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/epics");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTEpicRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер, что бы получить список эпиков
+        url = URI.create("http://localhost:8080/epics");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        List<Epic> epicsFromServerResponse = null;
+        if (response.statusCode() == 200) {
+            epicsFromServerResponse = gson.fromJson(response.body(), new TypeToken<List<Epic>>() {
+            }.getType());
+        }
+        assertEquals(newEpic, epicsFromServerResponse.get(0));
+    }
+
+    @Test
+    void testToPOSTSubtaskToServer() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.24", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        Epic newEpic = new Epic("epic1", "epic1 details", taskStartDate, taskDuration);
+        newEpic.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании эпика, а у нас тут его выставляем руками
+        SubTask newSubTask = new SubTask("subtask1", "subtask1 details", 1, taskStartDate, taskDuration);
+        newSubTask.setId(2);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании подзадачи, а у нас тут его выставляем руками
+        String gsonForPOSTEpicRequest = gson.toJson(newEpic, Epic.class);
+        String gsonForSubtaskPOSTRequest = gson.toJson(newSubTask, SubTask.class);
+        //Создаём эпик для подзадачи
+        managerForInMemoryTasks.createEpic(newEpic);
+        //Создаём подзадачу
+        managerForInMemoryTasks.createSubtask(newSubTask);
+        //Сохраним созданную задачу в переменной для сравнения с тем, что выдаст нам сервер
+        List<SubTask> createdSubTasks = managerForInMemoryTasks.getAllSubtasks();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/epics");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTEpicRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на создание подзадачи созданного эпика
+        client = HttpClient.newHttpClient();
+        url = URI.create("http://localhost:8080/subtasks");
+        request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForSubtaskPOSTRequest))
+                .build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь делаю запрос на сервер, что бы получить список задач
+        url = URI.create("http://localhost:8080/subtasks");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        List<SubTask> subtasksFromServerResponse = null;
+        if (response.statusCode() == 200) {
+            subtasksFromServerResponse = gson.fromJson(response.body(), new TypeToken<List<SubTask>>() {
+            }.getType());
+        }
+        assertEquals(createdSubTasks.get(0), subtasksFromServerResponse.get(0));
+    }
+
+    @Test
+    void historyShouldReturnRequestedTask() throws IOException, InterruptedException {
+        //Создаю тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 20.07.25", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        StandardTask newTask = new StandardTask("task1", "task1 details", taskStartDate, taskDuration);
+        newTask.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании задачи, а у нас тут его выставляем руками
+        String gsonForPOSTTaskRequest = gson.toJson(newTask, StandardTask.class);
+        //Для проверки обнуляем список задач
+        managerForInMemoryTasks.deleteAll();
+        //Создаю клиента и формирую запрос к серверу
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/tasks");
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTTaskRequest))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        //Теперь надо запросить задачу по ID
+        url = URI.create("http://localhost:8080/tasks/1");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        StandardTask tasksFromServerResponse = null;
+        if (response.statusCode() == 200) {
+            tasksFromServerResponse = gson.fromJson(response.body(), new TypeToken<StandardTask>() {
+            }.getType());
+        }
+        //Теперь можно запросить историю
+        url = URI.create("http://localhost:8080/history");
+        request = HttpRequest.newBuilder().uri(url).GET().build();
+        response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        List<StandardTask> historyTasksFromServerResponse = null;
+        if (response.statusCode() == 200) {
+            historyTasksFromServerResponse = gson.fromJson(response.body(), new TypeToken<List<StandardTask>>() {
+            }.getType());
+        }
+        assertEquals(tasksFromServerResponse, historyTasksFromServerResponse.get(0));
+    }
+
+    @Test
+    void tasksShouldBeInPrioritizedOrder() throws IOException, InterruptedException {
+        //Создаём файловый таск-менеджер, т.к. функция вывода по приоритету реализована в нём
+        FileBackedTaskManager taskManager = FileBackedTaskManager.loadFromFile("test.txt");
+        //Создаю первую тестовую задачу
+        taskStartDate = LocalDateTime.parse("10:00 21.07.25", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        StandardTask newTask1 = new StandardTask("task1", "task1 details", taskStartDate, taskDuration);
+        newTask1.setId(1);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании задачи, а у нас тут его выставляем руками
+        String gsonForPOSTTask2Request = gson.toJson(newTask1, StandardTask.class);
+        //Создаю вторую тестовую задачу
+        taskStartDate = LocalDateTime.parse("09:00 20.07.25", DATE_TIME_FORMATTER);
+        taskDuration = Duration.ofMinutes(5);
+        StandardTask newTask2 = new StandardTask("task2", "task2 details", taskStartDate, taskDuration);
+        newTask2.setId(2);//Устанавливаю ID, т.к. он используется при сравнении и таск-менеджер его выставит при создании задачи, а у нас тут его выставляем руками
+        String gsonForPOSTTask1Request = gson.toJson(newTask2, StandardTask.class);
+        //Для корректности проверки обнуляем список задач со стороны сервера
+        taskManager.deleteAll();
+        //Создаю клиента и формирую запрос к серверу на создание первой задачи (она хоть и создаётся раньше, но дата у неё позднее)
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create("http://localhost:8080/tasks");
+        HttpRequest request1 = HttpRequest.newBuilder().uri(url).POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTTask1Request)).build();
+        HttpResponse<String> response1 = client.send(request1, HttpResponse.BodyHandlers.ofString());
+        //Формирую запрос к серверу на создание второй задачи (она хоть и создаётся позднее, но дата у неё раньше)
+        HttpRequest request2 = HttpRequest.newBuilder().uri(url).POST(HttpRequest.BodyPublishers.ofString(gsonForPOSTTask2Request)).build();
+        HttpResponse<String> response2 = client.send(request2, HttpResponse.BodyHandlers.ofString());
+        //Создаю запрос на получение сортированного списка
+        url = URI.create("http://localhost:8080/prioritized");
+        request1 = HttpRequest.newBuilder().uri(url).GET().build();
+        HttpResponse<String> response3 = client.send(request1, HttpResponse.BodyHandlers.ofString());
+        List<StandardTask> prioritizedTasksFromServerResponse = null;
+        if (response3.statusCode() == 200) {
+            prioritizedTasksFromServerResponse = gson.fromJson(response3.body(), new TypeToken<List<StandardTask>>() {
+            }.getType());
+        }
+        assertTrue(prioritizedTasksFromServerResponse.get(0).getStartDateTime().isBefore(prioritizedTasksFromServerResponse.get(1).getStartDateTime()), "Задачи в списке приоритета находятся в неправильном порядке");
     }
 
     @Test
@@ -52,8 +477,10 @@ class TaskTest {
         FileBackedTaskManager taskManager2 = FileBackedTaskManager.loadFromFile("test.txt");
         StandardTask task1 = taskManager1.getTask(1);
         StandardTask task2 = taskManager2.getTask(1);
+        taskManager1.deleteAll();//Удаляем ненужную уже задачку из файла
 
         assertEquals(task2.getDescription(), task1.getDescription(), "Записанный в файл таск не соответствует прочитанному из этого файла");
+
     }
 
     @Test
@@ -327,10 +754,10 @@ class TaskTest {
 
     @Test
     void twoTasksAreOverlapped() {
-        taskStartDate = LocalDateTime.parse("10:00 20.07.24", DATE_TIME_FORMATTER);
+        taskStartDate = LocalDateTime.parse("10:00 20.08.24", DATE_TIME_FORMATTER);
         taskDuration = Duration.ofMinutes(30);
         StandardTask newStandardtask = new StandardTask("StandardTask1", "StandardTask1 details", taskStartDate, taskDuration);
-        LocalDateTime task2StartDate = LocalDateTime.parse("10:15 20.07.24", DATE_TIME_FORMATTER);
+        LocalDateTime task2StartDate = LocalDateTime.parse("10:15 20.08.24", DATE_TIME_FORMATTER);
         Duration task2Duration = Duration.ofMinutes(10);
         StandardTask newStandardtask2 = new StandardTask("StandardTask2", "StandardTask2 details", task2StartDate, task2Duration);
         FileBackedTaskManager taskManager2 = FileBackedTaskManager.loadFromFile("test.txt");
@@ -338,6 +765,7 @@ class TaskTest {
         taskManager2.getPrioritizedTasks();
         boolean result = taskManager2.checkTasksOverlapping(newStandardtask2);
         assertTrue(result, "Менеджер неверно определил наложение задач");
+        taskManager2.deleteAll();
     }
 
     @Test
